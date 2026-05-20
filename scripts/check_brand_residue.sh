@@ -21,7 +21,8 @@ grep -rnE --include="*.ts" --include="*.tsx" --include="*.js" --include="*.json"
   | grep -v "release/" \
   | grep -v "dist-electron/" \
   | grep -v "dist/" \
-  | grep -vE "yikart|基于|上游|fork|Fork|FROM:|参见|致敬|致谢|原版本|原项目|原作者|参考|reference|copyright|Copyright" \
+  | grep -vE "/CHANGELOG\.md:|/RELEASE_NOTES\.md:|/PITCH\.md:|/ARCHITECTURE\.md:|/LICENSE\.txt:|/docs/social/" \
+  | grep -vE "yikart|基于|上游|fork|Fork|FROM:|参见|致敬|致谢|原版本|原项目|原作者|参考|reference|copyright|Copyright|→|->" \
   > "$TMP" || true
 
 count=$(wc -l < "$TMP" | tr -d ' ')
