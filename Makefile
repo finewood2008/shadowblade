@@ -1,6 +1,6 @@
 # 火花 · Huohua · 命令统一入口
 
-.PHONY: help install build build-electron build-web smoke check release clean
+.PHONY: help install build build-electron build-web smoke check release clean dev dev-stop landing
 
 VERSION ?= 0.8.0
 
@@ -28,6 +28,15 @@ check:  ## 品牌残留守门
 
 release: smoke check  ## 准备 GitHub Release（产物 + SHA256）
 	./scripts/prepare_release.sh $(VERSION)
+
+dev:  ## 启动 web 端 dev 模式 (http://127.0.0.1:6060)
+	@cd project/aitoearn-web && PORT=6060 npm run dev
+
+dev-stop:  ## 关掉所有 next dev 进程
+	@pkill -f "next dev" 2>/dev/null && echo "✓ next dev stopped" || echo "no next dev running"
+
+landing:  ## 用浏览器打开静态落地页
+	@open docs/landing/index.html
 
 clean:  ## 清理 build 产物
 	rm -rf project/aitoearn-electron/release
