@@ -1,0 +1,46 @@
+name: 火花 dmg smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'project/aitoearn-electron/**'
+      - 'scripts/smoke_test.sh'
+      - '.github/workflows/smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: macos-14   # Apple Silicon runner
+    timeout-minutes: 40
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 安装依赖
+        working-directory: project/aitoearn-electron
+        run: npm install --no-audit --no-fund
+
+      - name: 准备图标 (build/icon.icns 由仓库提供)
+        run: ls project/aitoearn-electron/build/icon.icns
+
+      - name: 打包 (跳过 tsc 严格检查)
+        working-directory: project/aitoearn-electron
+        run: npm run build:notsc
+
+      - name: dmg smoke test
+        run: |
+          chmod +x scripts/smoke_test.sh
+          ./scripts/smoke_test.sh arm64
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: huohua-macos
+          path: |
+            project/aitoearn-electron/release/0.8.0/*.dmg
+            project/aitoearn-electron/release/0.8.0/*.zip
+          retention-days: 14
