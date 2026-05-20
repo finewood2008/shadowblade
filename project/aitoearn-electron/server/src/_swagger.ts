@@ -13,14 +13,14 @@ export function createSwagger(app: INestApplication) {
   const version = '1.0.0'; // 获取同项目一致版本号
 
   const docConfig = new DocumentBuilder()
-    .setTitle('爱团团AiToEarnAPI文档')
+    .setTitle('爱团团火花API文档')
     .setVersion(version)
     .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, docConfig, {});
   SwaggerModule.setup(API_URL, app, document, {
-    customSiteTitle: `爱团团AiToEarnAPI文档`,
+    customSiteTitle: `爱团团火花API文档`,
     jsonDocumentUrl: `${API_URL}/openapi.json`, // 文档JSON
     swaggerOptions: {
       persistAuthorization: true, // 保持登录

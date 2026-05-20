@@ -5,9 +5,9 @@
 https://aitoearn.ai
 
 
-# AiToEarn — The Best Open-Source AI Content Growth & Monetization Platform
+# 火花 — The Best Open-Source AI Content Growth & Monetization Platform
 
-## AiToEarn 的核心是Agent（Content Agent）。
+## 火花 的核心是Agent（Content Agent）。
 
 每一个 Agent 都代表一位“可配置、可持续工作的 AI 创作者”，负责从内容生成到发布的完整流程。
 
@@ -39,7 +39,7 @@ X（Twitter） / Facebook / LinkedIn
 
 # 前端项目架构与技术栈
 
-本项目是 AiToEarn 官网 / Web 应用前端，基于 Next.js 14（App Router） 构建，围绕 Agent 驱动的内容创作与发布流程 进行模块化设计。
+本项目是 火花 官网 / Web 应用前端，基于 Next.js 14（App Router） 构建，围绕 Agent 驱动的内容创作与发布流程 进行模块化设计。
 
 整体目标是：
 

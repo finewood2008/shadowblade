@@ -1,6 +1,6 @@
-# AiToEarn Docker 部署指南
+# 火花 Docker 部署指南
 
-本指南帮助你使用 Docker Compose 快速部署完整的 AiToEarn 应用。
+本指南帮助你使用 Docker Compose 快速部署完整的 火花 应用。
 
 ## 服务架构
 
@@ -53,13 +53,13 @@ docker compose version
 
 ## 🚀 3 分钟快速启动
 
-只需 3 步，即可在本地跑起完整的 AiToEarn。
+只需 3 步，即可在本地跑起完整的 火花。
 
 ### 第 1 步：克隆并启动
 
 ```bash
-git clone https://github.com/yikart/AiToEarn.git
-cd AiToEarn
+git clone https://github.com/yikart/火花.git
+cd 火花
 docker compose up -d
 ```
 
@@ -75,7 +75,7 @@ docker compose up -d
 
 > **为什么要配 Relay？**
 >
-> AiToEarn 需要登录你的社交媒体账号（抖音、小红书、TikTok 等）才能发布内容。这些平台要求 OAuth 开发者凭据才能授权登录。
+> 火花 需要登录你的社交媒体账号（抖音、小红书、TikTok 等）才能发布内容。这些平台要求 OAuth 开发者凭据才能授权登录。
 >
 > - **不配 Relay**：你需要自己去十几个平台逐一申请开发者账号，获取 client_id/secret，非常麻烦。
 > - **配了 Relay**：借用官方 aitoearn.ai 的凭据完成授权，**一个 API Key 搞定所有平台**。
@@ -97,7 +97,7 @@ RELAY_CALLBACK_URL: http://127.0.0.1:8080/api/plat/relay-callback
 docker compose restart aitoearn-server
 ```
 
-**到这里，你已经可以正常使用 AiToEarn 了！** 🎉
+**到这里，你已经可以正常使用 火花 了！** 🎉
 
 以下是进阶配置，只在需要时参考。
 

@@ -41,12 +41,12 @@ function Logo() {
     <Link href="/" className="mr-8 flex items-center gap-2 md:mr-16">
       <Image
         src={logo}
-        alt="AiToEarn"
+        alt="火花"
         width={40}
         height={40}
         className="size-8 rounded-md md:size-10"
       />
-      <span className="text-lg font-semibold md:text-xl">AiToEarn</span>
+      <span className="text-lg font-semibold md:text-xl">火花</span>
     </Link>
   )
 }

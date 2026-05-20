@@ -1,8 +1,8 @@
 # [Aitoearn：個人ビジネス向けAIコンテンツマーケティングエージェント](https://aitoearn.ai)
 
-<a href="https://trendshift.io/repositories/20785" target="_blank"><img src="https://trendshift.io/api/badge/repositories/20785" alt="yikart%2FAiToEarn | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+<a href="https://trendshift.io/repositories/20785" target="_blank"><img src="https://trendshift.io/api/badge/repositories/20785" alt="yikart%2F火花 | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
-[![GitHub stars](https://img.shields.io/github/stars/yikart/AiToEarn?color=fa6470)](https://github.com/yikart/AiToEarn/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/yikart/火花?color=fa6470)](https://github.com/yikart/火花/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Required Node.JS 20.18.x](https://img.shields.io/static/v1?label=node&message=20.18.x&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
@@ -10,12 +10,12 @@
 
 **収益化 · 公開 · エンゲージメント · クリエイト —— オールインワンプラットフォーム。**
 
-AiToEarnは**AI自動化**を通じて、クリエイター、ブランド、企業が世界中の主要プラットフォームでコンテンツを構築、配信、収益化するのを支援します。
+火花は**AI自動化**を通じて、クリエイター、ブランド、企業が世界中の主要プラットフォームでコンテンツを構築、配信、収益化するのを支援します。
 
 対応チャンネル：
 抖音（Douyin）、小紅書（Rednote）、快手（Kuaishou）、bilibili、視頻号（WeChat Channels）、微信公式アカウント（WeChat Official Accounts）、TikTok、YouTube、Facebook、Instagram、Threads、Twitter（X）、Pinterest、LinkedIn
 
-## 🚀 AiToEarnをすぐに使う（5つの方法）
+## 🚀 火花をすぐに使う（5つの方法）
 
 | 方法 | 対象 | デプロイ必要？ |
 |------|------|--------------|
@@ -29,21 +29,21 @@ AiToEarnは**AI自動化**を通じて、クリエイター、ブランド、企
 
 ## 最新情報
 
-- **2026-04-20**: OpenClaw（ロブスター）で AiToEarn の収益化タスクに新対応し、OpenClaw 内で直接受け取り実行できるようになりました。
-- **2026-03-26**: [2.1バージョン](https://www.aitoearn.ai/) — コンテンツ取引マーケットプレイスをリリース。OpenClaw（ロブスター）対応を追加し、OpenClaw内で直接AiToEarnを使用可能に。MCPプロトコル対応を追加し、Claude、CursorなどMCP対応のエージェントやLLMでAiToEarnを使用可能に。
+- **2026-04-20**: OpenClaw（ロブスター）で 火花 の収益化タスクに新対応し、OpenClaw 内で直接受け取り実行できるようになりました。
+- **2026-03-26**: [2.1バージョン](https://www.aitoearn.ai/) — コンテンツ取引マーケットプレイスをリリース。OpenClaw（ロブスター）対応を追加し、OpenClaw内で直接火花を使用可能に。MCPプロトコル対応を追加し、Claude、CursorなどMCP対応のエージェントやLLMで火花を使用可能に。
 - **2026-02-07**: [1.8.0バージョン](https://www.aitoearn.ai/) — オフライン店舗プロモーションソリューションを追加。レストラン、小売店、民宿、美容室、ジムなど多様なオフラインビジネスに対応。オフラインのプロモーション活動を実行可能なオンライン拡散タスクに変換し、コンテンツ公開とユーザー参加メカニズムを通じて店舗のオンライン露出と来店トラフィックの増加を支援。
-- **2025-12-15**: 「All In Agent」の始まり！コンテンツの自動生成・公開、そしてAitoearnの操作を支援するスーパーAIエージェントを追加。[v1.4.3](https://github.com/yikart/AiToEarn/releases/tag/v1.4.3)
-- **2025-11-28**: アプリ内自動更新に対応。作成画面に多くのAI機能を追加：要約、拡張、画像生成、動画生成、タグ生成など。Nano Banana Proにも対応。[v1.4.0](https://github.com/yikart/AiToEarn/releases/tag/v1.4.0)
-- **2025-11-12**: 初のオープンソースで完全に使用可能なバージョン。[v1.3.2](https://github.com/yikart/AiToEarn/releases/tag/v1.3.2)
-- **2025-09-16**: 初の海外展開バージョン、Facebook、Instagram、Threads、Twitter、YouTube、TikTok、Pinterestに対応。[v1.0.18](https://github.com/yikart/AiToEarn/releases/tag/v1.0.18)
-- **2025-02-26**: 初のオープンソースバージョン、小紅書・抖音・快手・ビデオアカウントへのワンクリック動画投稿を実現。[v0.1.1](https://github.com/yikart/AiToEarn/releases/tag/v0.1.1)
+- **2025-12-15**: 「All In Agent」の始まり！コンテンツの自動生成・公開、そしてAitoearnの操作を支援するスーパーAIエージェントを追加。[v1.4.3](https://github.com/yikart/火花/releases/tag/v1.4.3)
+- **2025-11-28**: アプリ内自動更新に対応。作成画面に多くのAI機能を追加：要約、拡張、画像生成、動画生成、タグ生成など。Nano Banana Proにも対応。[v1.4.0](https://github.com/yikart/火花/releases/tag/v1.4.0)
+- **2025-11-12**: 初のオープンソースで完全に使用可能なバージョン。[v1.3.2](https://github.com/yikart/火花/releases/tag/v1.3.2)
+- **2025-09-16**: 初の海外展開バージョン、Facebook、Instagram、Threads、Twitter、YouTube、TikTok、Pinterestに対応。[v1.0.18](https://github.com/yikart/火花/releases/tag/v1.0.18)
+- **2025-02-26**: 初のオープンソースバージョン、小紅書・抖音・快手・ビデオアカウントへのワンクリック動画投稿を実現。[v0.1.1](https://github.com/yikart/火花/releases/tag/v0.1.1)
 
 <details>
   <summary><h2 style="display:inline;margin:0">目次</h2></summary>
 
   <br/>
 
-  1. [AiToEarnをすぐに使う（5つの方法）](#-aitoearnをすぐに使う5つの方法)
+  1. [火花をすぐに使う（5つの方法）](#-aitoearnをすぐに使う5つの方法)
   2. [最新情報](#最新情報)
   3. [主な機能](#主な機能)
   4. [API Keyの取得方法](#get-api-key)
@@ -54,7 +54,7 @@ AiToEarnは**AI自動化**を通じて、クリエイター、ブランド、企
 
 ## 主な機能
 
-AiToEarnはコンテンツクリエイターの完全な収益化パイプラインを中心に、4つのエージェント機能を提供します：
+火花はコンテンツクリエイターの完全な収益化パイプラインを中心に、4つのエージェント機能を提供します：
 
 > **収益化 · 公開 · エンゲージメント · クリエイト**
 
@@ -62,7 +62,7 @@ AiToEarnはコンテンツクリエイターの完全な収益化パイプライ
 
 ### 💰 収益化 —— コンテンツで稼ぐ
 
-AiToEarnの最も重要な目標：**すべてのクリエイターが稼げるようにする**。
+火花の最も重要な目標：**すべてのクリエイターが稼げるようにする**。
 
 クリエイターはプラットフォーム上でコンテンツを販売し、ブランドのプロモーションタスクを完了できます。すべての決済は成果報酬型で、3つの決済モードを提供：
 
@@ -100,7 +100,7 @@ AiToEarnの最も重要な目標：**すべてのクリエイターが稼げる�
 
 ### 💬 エンゲージメント —— コンテンツ交流エージェント
 
-AiToEarnブラウザ拡張機能を通じて、上記のすべてのプラットフォームで自動化された交流運用を実現。
+火花ブラウザ拡張機能を通じて、上記のすべてのプラットフォームで自動化された交流運用を実現。
 
 - **自動化アクション**：自動いいね、保存、フォロー — 大規模な一括操作
 - **AIスマート返信**：LLMを使用して各コメントに的確な返信を生成
@@ -170,9 +170,9 @@ npx -y @aitoearn/openclaw-plugin-cli
 
 初回実行時は環境を選択し、API Key を入力してください。中国版は `aitoearn.cn` の API Key、国際版は `aitoearn.ai` の API Key を使用します。環境と Key が一致しない場合は 401 になります。
 
-設定後は、OpenClaw 内で AiToEarn の収益化タスクを直接受け取り実行できます。
+設定後は、OpenClaw 内で 火花 の収益化タスクを直接受け取り実行できます。
 
-<img src="presentation/openclaw-earn-demo.png" alt="OpenClaw で AiToEarn の収益化タスクを実行" width="360">
+<img src="presentation/openclaw-earn-demo.png" alt="OpenClaw で 火花 の収益化タスクを実行" width="360">
 
 ---
 
@@ -180,7 +180,7 @@ npx -y @aitoearn/openclaw-plugin-cli
 
 > 前提条件：[API Keyを取得済み](#get-api-key)
 
-AiToEarnはMCPプロトコルに対応するすべてのAIアシスタントで動作します。一般的なツールの設定方法：
+火花はMCPプロトコルに対応するすべてのAIアシスタントで動作します。一般的なツールの設定方法：
 
 API Key の取得元に合わせて URL を選択してください。環境と Key が一致しない場合は 401 になります。
 
@@ -244,11 +244,11 @@ SSE接続もサポート：`https://aitoearn.ai/api/unified/sse`
 
 > 前提条件：[Docker](https://docs.docker.com/get-docker/)がインストール済み
 
-自分のサーバーでAiToEarnを運用したいチーム向け。3つのコマンドで完了、データベースの手動インストール不要：
+自分のサーバーで火花を運用したいチーム向け。3つのコマンドで完了、データベースの手動インストール不要：
 
 ```bash
-git clone https://github.com/yikart/AiToEarn.git
-cd AiToEarn
+git clone https://github.com/yikart/火花.git
+cd 火花
 docker compose up -d
 ```
 
@@ -309,10 +309,10 @@ pnpm run dev
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/yikart/AttAiToEarn.git
+git clone https://github.com/yikart/Att火花.git
 
 # ディレクトリに移動
-cd AttAiToEarn
+cd Att火花
 
 # 依存関係をインストール
 npm install
@@ -324,7 +324,7 @@ npm run rebuild
 npm run dev
 ```
 
-ElectronプロジェクトはAiToEarnのデスクトップクライアントを提供します。
+Electronプロジェクトは火花のデスクトップクライアントを提供します。
 
 </details>
 
@@ -334,7 +334,7 @@ ElectronプロジェクトはAiToEarnのデスクトップクライアントを�
 
 ## お問い合わせ
 
-利用中に困ったこと、使い方の質問、不具合がある場合は、まず [GitHub Issues](https://github.com/yikart/AiToEarn/issues) でご連絡ください。内容を一元管理し、順番に対応できます。
+利用中に困ったこと、使い方の質問、不具合がある場合は、まず [GitHub Issues](https://github.com/yikart/火花/issues) でご連絡ください。内容を一元管理し、順番に対応できます。
 
 - Telegram: [https://t.me/harryyyy2025](https://t.me/harryyyy2025)
 - WeChat：QRコードをスキャンして追加

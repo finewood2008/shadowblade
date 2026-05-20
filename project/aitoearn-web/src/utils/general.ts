@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getHreflang, languages } from '@/lib/i18n/languageConfig'
 
 export async function getPageTitle(name: string, lng: string) {
-  return `${name} —— AiToEarn`
+  return `${name} —— 火花`
 }
 
 /**
@@ -55,7 +55,7 @@ export async function getMetadata(props: Metadata, lng: string, path?: string): 
       title,
       description,
       url: `${baseUrl}/${lng}${path}`,
-      siteName: 'AiToEarn',
+      siteName: '火花',
       locale: lng,
       type: 'website',
       images: [

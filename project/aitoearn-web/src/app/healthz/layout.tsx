@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'AiToEarn',
-  description: 'AiToEarn',
+  title: '火花',
+  description: '火花',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

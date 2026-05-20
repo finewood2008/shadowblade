@@ -59,12 +59,12 @@ export function Footer() {
               <Link href="/" className="inline-flex items-center gap-2">
                 <Image
                   src={logo}
-                  alt="AiToEarn"
+                  alt="火花"
                   width={32}
                   height={32}
                   className="size-8 rounded-md"
                 />
-                <span className="text-lg font-semibold">AiToEarn</span>
+                <span className="text-lg font-semibold">火花</span>
               </Link>
               <div className="flex items-center gap-4">
                 <a

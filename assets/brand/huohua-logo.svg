@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>火花 Huohua</title>
+  <defs>
+    <linearGradient id="spark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="55%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="256" height="256" rx="56" fill="#f5f3ff"/>
+  <circle cx="128" cy="128" r="96" fill="url(#glow)"/>
+  <!-- 4-pointed sparkle, 火花 minimal mark -->
+  <path d="M128 28 L150 110 L232 128 L150 146 L128 228 L106 146 L24 128 L106 110 Z"
+        fill="url(#spark)"/>
+  <!-- small accent sparks -->
+  <path d="M200 60 L210 84 L234 94 L210 104 L200 128 L190 104 L166 94 L190 84 Z"
+        fill="#c4b5fd" opacity="0.85"/>
+  <path d="M56 168 L62 184 L78 190 L62 196 L56 212 L50 196 L34 190 L50 184 Z"
+        fill="#ddd6fe" opacity="0.9"/>
+</svg>

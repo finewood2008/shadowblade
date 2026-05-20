@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2025 AiToEarn
+Copyright (c) 2025 AiToEarn (original project by yikart, https://github.com/yikart/AiToEarn)
+Copyright (c) 2026 火花 (Huohua) — fork & rebrand by qiu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +20,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+NOTICE / 致谢
+火花（Huohua）是基于 AiToEarn (https://github.com/yikart/AiToEarn) 的二次开发/品牌改造版本。
+原始作者 yikart 团队保留所有原始版权。本 fork 仅做品牌替换与本地化改造，
+核心 Agent / 平台对接 / 业务逻辑均归属原项目。
+
+如需 AiToEarn 的官方版本、商业支持或最新功能，请访问：
+  - 官网: https://aitoearn.ai
+  - 仓库: https://github.com/yikart/AiToEarn

@@ -356,7 +356,7 @@ export default function Page() {
   >({});
 
   // 添加搜索关键词状态
-  const [searchKeyword, setSearchKeyword] = useState('哎哟赚');
+  const [searchKeyword, setSearchKeyword] = useState('火花');
   const [searchKeywordSelected, setSearchKeywordSelected] = useState('');
 
   // 添加小红书搜索任务相关状态

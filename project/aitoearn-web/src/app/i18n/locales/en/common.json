@@ -89,8 +89,8 @@
     "materialLibrary": "Library",
     "draftBox": "Content Management",
     "draftBoxSeoTitle": "Content Management - AI Batch Creation & Draft Editor",
-    "draftBoxSeoDescription": "Manage all your content drafts in one place. Use AI to batch generate social media posts, edit drafts before publishing, and organize content for multi-platform distribution with AiToEarn.",
-    "draftBoxSeoKeywords": "content management, draft editor, AI content generation, batch content creation, social media drafts, content scheduling, AiToEarn",
+    "draftBoxSeoDescription": "Manage all your content drafts in one place. Use AI to batch generate social media posts, edit drafts before publishing, and organize content for multi-platform distribution with 火花.",
+    "draftBoxSeoKeywords": "content management, draft editor, AI content generation, batch content creation, social media drafts, content scheduling, 火花",
     "brandPromotion": "AI Check-in",
     "agentAssets": "Agent Assets"
   },
@@ -132,7 +132,7 @@
   "contact": "Need help? Contact support:",
   "uptime": {
     "seoTitle": "AI Model Status - Real-Time Model Availability Monitor",
-    "pageKeywords": "AI model status, model availability, uptime tracker, AI service health, model monitoring, AiToEarn status",
+    "pageKeywords": "AI model status, model availability, uptime tracker, AI service health, model monitoring, 火花 status",
     "pageTitle": "AI Model Status",
     "pageDescription": "Monitor the real-time availability and uptime of AI models. Check the operational status of each model and provider.",
     "loading": "Loading...",

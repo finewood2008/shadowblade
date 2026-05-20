@@ -166,7 +166,7 @@ import { getPageTitle, getMetadata } from '@/utils/general'
 
 | 函数                             | 说明                                                     | 参数                                              | 返回值              |
 | -------------------------------- | -------------------------------------------------------- | ------------------------------------------------- | ------------------- |
-| `getPageTitle(name, lng)`        | 生成页面标题 `name —— AiToEarn`                          | `name: string`, `lng: string`                     | `Promise<string>`   |
+| `getPageTitle(name, lng)`        | 生成页面标题 `name —— 火花`                          | `name: string`, `lng: string`                     | `Promise<string>`   |
 | `getMetadata(props, lng, path?)` | 生成完整的 SEO Metadata（含 OG、Twitter Card、hreflang） | `props: Metadata`, `lng: string`, `path?: string` | `Promise<Metadata>` |
 
 ### 使用示例

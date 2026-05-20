@@ -477,7 +477,7 @@
       "thirdPartyApisDesc": "Used for accessing image models, video models, video editing/processing, and other external services",
       "costNote": "The actual credit consumption of a task depends on its complexity, duration, and number of external calls.",
       "storageNote": "After a task is completed, storing, hosting, displaying, or deploying its output does not consume additional credits.",
-      "refundNote": "If a task fails due to AiToEarn technical issues, we will fully refund the credits consumed by that task.",
+      "refundNote": "If a task fails due to 火花 technical issues, we will fully refund the credits consumed by that task.",
       "exchangeRate": "100 Credits = $1 USD"
     },
     "llm": {

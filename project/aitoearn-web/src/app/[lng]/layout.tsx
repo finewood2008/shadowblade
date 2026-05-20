@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lng: stri
   return {
     title: t('title'),
     description: t('content'),
-    keywords: 'aitoearn, AiToEarn, ai, earn, aitoearn.com',
+    keywords: 'aitoearn, 火花, ai, earn, aitoearn.com',
     alternates: {
       languages: Object.fromEntries(alternateRefs.map(({ href, hreflang }) => [hreflang, href])),
     },
@@ -71,14 +71,14 @@ export default async function RootLayout({
         {/* SEO: 全局结构化数据 */}
         <StructuredData
           organization={{
-            name: 'AiToEarn',
+            name: '火花',
             url: baseUrl,
             logo: `${baseUrl}/logo.png`,
             description: 'AI-powered content creation and social media management platform',
             sameAs: ['https://twitter.com/aitoearn', 'https://www.linkedin.com/company/aitoearn'],
           }}
           website={{
-            name: 'AiToEarn',
+            name: '火花',
             url: baseUrl,
             description: 'AI-powered content creation and social media management platform',
             potentialAction: {

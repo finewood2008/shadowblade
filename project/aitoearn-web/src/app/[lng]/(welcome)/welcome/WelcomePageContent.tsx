@@ -36,7 +36,7 @@ export default function WelcomePageContent({ lng }: WelcomePageContentProps) {
         {/* 科技功能介绍 */}
         <TechFeaturesSection />
 
-        {/* 为什么选择 AiToEarn + 核心功能（合并区块） */}
+        {/* 为什么选择 火花 + 核心功能（合并区块） */}
         <BeliefsSection />
       </main>
 

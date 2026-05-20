@@ -41,6 +41,6 @@ export class AppService {
   }
 
   getHello(): string {
-    return 'Hello!This is 爱团团AiToEarn';
+    return 'Hello!This is 爱团团火花';
   }
 }

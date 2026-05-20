@@ -477,7 +477,7 @@
       "thirdPartyApisDesc": "Für den Zugriff auf Bildmodelle, Videomodelle, Videobearbeitung/-verarbeitung und andere externe Dienste",
       "costNote": "Der tatsächliche Guthabenverbrauch einer Aufgabe hängt von ihrer Komplexität, Dauer und Anzahl externer Aufrufe ab.",
       "storageNote": "Nach Abschluss einer Aufgabe verbraucht das Speichern, Hosten, Anzeigen oder Bereitstellen ihrer Ausgabe keine zusätzlichen Guthaben.",
-      "refundNote": "Wenn eine Aufgabe aufgrund technischer Probleme von AiToEarn fehlschlägt, erstatten wir die verbrauchten Guthaben vollständig.",
+      "refundNote": "Wenn eine Aufgabe aufgrund technischer Probleme von 火花 fehlschlägt, erstatten wir die verbrauchten Guthaben vollständig.",
       "exchangeRate": "100 Guthaben = 1 USD"
     },
     "llm": {

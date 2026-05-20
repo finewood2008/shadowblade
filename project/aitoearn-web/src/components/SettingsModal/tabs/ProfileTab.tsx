@@ -237,7 +237,7 @@ export function ProfileTab({ onClose }: ProfileTabProps) {
           </a>
         </Button>
         <a
-          href="https://github.com/yikart/AttAiToEarn"
+          href="https://github.com/yikart/Att火花"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center"

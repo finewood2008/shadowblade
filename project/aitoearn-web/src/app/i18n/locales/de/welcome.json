@@ -5,8 +5,8 @@
   },
   "seo": {
     "title": "KI-gestützte Content-Erstellung & Social-Media-Plattform",
-    "description": "AiToEarn bietet den bequemsten KI-Videoerstellungsservice, hilft beim Traffic für Offline-Geschäfte und bietet Social-Media-Konto-Hosting für Content-Publishing und Kommentar-Interaktion.",
-    "keywords": "KI-Videoerstellung,Social-Media-Management,Multi-Plattform-Veröffentlichung,KI-Marketing,Content-Erstellung,Social-Media-Automatisierung,AiToEarn,Markenwerbung"
+    "description": "火花 bietet den bequemsten KI-Videoerstellungsservice, hilft beim Traffic für Offline-Geschäfte und bietet Social-Media-Konto-Hosting für Content-Publishing und Kommentar-Interaktion.",
+    "keywords": "KI-Videoerstellung,Social-Media-Management,Multi-Plattform-Veröffentlichung,KI-Marketing,Content-Erstellung,Social-Media-Automatisierung,火花,Markenwerbung"
   },
   "navbar": {
     "pricing": "Preise",
@@ -19,7 +19,7 @@
   "hero": {
     "badge": "KI-gestütztes Restaurant-Wachstum",
     "title": "KI-Wachstumsoperator für Solo-Unternehmen",
-    "subtitle": "Mit AiToEarn können Sie einfach Traffic zu Ihren Offline-Geschäften lenken. AiToEarn bietet Ihnen den bequemsten KI-Videoerstellungsservice. Sie können auch Ihre Social-Media-Konten auf AiToEarn hosten, und wir helfen Ihnen bei der Content-Veröffentlichung und Kommentar-Interaktion.",
+    "subtitle": "Mit 火花 können Sie einfach Traffic zu Ihren Offline-Geschäften lenken. 火花 bietet Ihnen den bequemsten KI-Videoerstellungsservice. Sie können auch Ihre Social-Media-Konten auf 火花 hosten, und wir helfen Ihnen bei der Content-Veröffentlichung und Kommentar-Interaktion.",
     "placeholder": "Finden Sie Ihr Restaurant",
     "cta": "Holen Sie sich meinen KI-Agenten",
     "selectFirst": "Bitte wählen Sie zuerst ein Restaurant aus",
@@ -52,13 +52,13 @@
   },
   "reviews": {
     "title": "Was unsere Nutzer sagen",
-    "subtitle": "Schließen Sie sich Tausenden von Einzelunternehmern an, die AiToEarn vertrauen",
+    "subtitle": "Schließen Sie sich Tausenden von Einzelunternehmern an, die 火花 vertrauen",
     "viewOnGithub": "Auf GitHub ansehen",
     "review1": {
       "content": "Endlich ein Open-Source-Tool, das Multi-Plattform-Publishing handhabt! Ein Klick zu Douyin, TikTok, YouTube - spart mir jede Woche Stunden."
     },
     "review2": {
-      "content": "Als Einzelunternehmer ist AiToEarn ein Game Changer. KI generiert Inhalte, veröffentlicht automatisch, handhabt sogar Kommentare. Meine Social Media läuft jetzt von selbst."
+      "content": "Als Einzelunternehmer ist 火花 ein Game Changer. KI generiert Inhalte, veröffentlicht automatisch, handhabt sogar Kommentare. Meine Social Media läuft jetzt von selbst."
     },
     "review3": {
       "content": "Die KI-Agent-Funktion ist unglaublich. Sie schreibt, optimiert und postet Inhalte automatisch. Inhaltskosten um 90% gesunken."
@@ -96,7 +96,7 @@
     "watchVideo": "Video ansehen"
   },
   "beliefs": {
-    "title": "Warum AiToEarn wählen",
+    "title": "Warum 火花 wählen",
     "subtitle": "Entwickelt für Einzelunternehmer und kleine Unternehmen",
     "belief1": {
       "title": "Für Einzelunternehmer entwickelt",
@@ -173,6 +173,6 @@
     "extensionPrivacy": "Erweiterungs-Datenschutzrichtlinie",
     "contact": "Kontaktieren Sie uns",
     "supportedPlatforms": "Unterstützte Plattformen",
-    "copyright": "© 2026 AiToEarn. Alle Rechte vorbehalten."
+    "copyright": "© 2026 火花. Alle Rechte vorbehalten."
   }
 }

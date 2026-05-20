@@ -477,7 +477,7 @@
       "thirdPartyApisDesc": "Pour accéder aux modèles d'images, modèles vidéo, édition/traitement vidéo et autres services externes",
       "costNote": "La consommation réelle de crédits d'une tâche dépend de sa complexité, sa durée et du nombre d'appels externes.",
       "storageNote": "Une fois une tâche terminée, le stockage, l'hébergement, l'affichage ou le déploiement de sa sortie ne consomme pas de crédits supplémentaires.",
-      "refundNote": "Si une tâche échoue en raison de problèmes techniques d'AiToEarn, nous rembourserons intégralement les crédits consommés.",
+      "refundNote": "Si une tâche échoue en raison de problèmes techniques d'火花, nous rembourserons intégralement les crédits consommés.",
       "exchangeRate": "100 Crédits = 1 USD"
     },
     "llm": {

@@ -60,7 +60,7 @@ async function createWindow() {
 
   // 创建主窗口但先不显示
   win = new BrowserWindow({
-    title: '哎哟赚AiToEarn',
+    title: '火花',
     icon: path.join(getAssetPath('favicon.ico')),
     width: 2350,
     height: 1280,

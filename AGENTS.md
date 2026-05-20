@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本文件定义 Codex 在 `AiToEarn` 仓库内的默认工作规则。
+本文件定义 Codex 在 `火花` 仓库内的默认工作规则。
 
 ## Communication
 

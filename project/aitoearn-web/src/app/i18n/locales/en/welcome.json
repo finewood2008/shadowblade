@@ -5,8 +5,8 @@
   },
   "seo": {
     "title": "AI-Powered Content Creation & Social Media Platform",
-    "description": "AiToEarn provides the most convenient AI video creation service, helps drive traffic to offline stores, and offers social media account hosting for content publishing and comment interaction.",
-    "keywords": "AI video creation,social media management,multi-platform publishing,AI marketing,content creation,social media automation,AiToEarn,brand promotion,one-click publishing"
+    "description": "火花 provides the most convenient AI video creation service, helps drive traffic to offline stores, and offers social media account hosting for content publishing and comment interaction.",
+    "keywords": "AI video creation,social media management,multi-platform publishing,AI marketing,content creation,social media automation,火花,brand promotion,one-click publishing"
   },
   "navbar": {
     "pricing": "Pricing",
@@ -19,7 +19,7 @@
   "hero": {
     "badge": "AI-Powered Restaurant Growth",
     "title": "AI Growth Operator for Solo Businesses",
-    "subtitle": "With AiToEarn, you can easily drive traffic to your offline stores. AiToEarn provides you with the most convenient AI video creation service. You can also host your social media accounts on AiToEarn, and we will help you with content publishing and comment interaction.",
+    "subtitle": "With 火花, you can easily drive traffic to your offline stores. 火花 provides you with the most convenient AI video creation service. You can also host your social media accounts on 火花, and we will help you with content publishing and comment interaction.",
     "placeholder": "Find your restaurant",
     "cta": "Get my AI Agent",
     "selectFirst": "Please select a restaurant first",
@@ -52,13 +52,13 @@
   },
   "reviews": {
     "title": "What Our Users Say",
-    "subtitle": "Join thousands of solo entrepreneurs who trust AiToEarn",
+    "subtitle": "Join thousands of solo entrepreneurs who trust 火花",
     "viewOnGithub": "View on GitHub",
     "review1": {
       "content": "Finally an open-source tool that handles multi-platform publishing! One click to Douyin, TikTok, YouTube - saved me hours every week."
     },
     "review2": {
-      "content": "As a solo entrepreneur, AiToEarn is a game changer. AI generates content, auto-publishes, even handles comments. My social media runs itself now."
+      "content": "As a solo entrepreneur, 火花 is a game changer. AI generates content, auto-publishes, even handles comments. My social media runs itself now."
     },
     "review3": {
       "content": "The AI Agent feature is incredible. It writes, optimizes, and posts content automatically. Content costs dropped by 90%."
@@ -96,7 +96,7 @@
     "watchVideo": "Watch video"
   },
   "beliefs": {
-    "title": "Why Choose AiToEarn",
+    "title": "Why Choose 火花",
     "subtitle": "Built for solo businesses and small enterprises",
     "belief1": {
       "title": "Designed for Solo Businesses",
@@ -173,6 +173,6 @@
     "extensionPrivacy": "Extension Privacy Policy",
     "contact": "Contact Us",
     "supportedPlatforms": "Supported Platforms",
-    "copyright": "© 2026 AiToEarn. All rights reserved."
+    "copyright": "© 2026 火花. All rights reserved."
   }
 }

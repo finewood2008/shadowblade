@@ -78,7 +78,7 @@ const LoginDialogContent = memo(() => {
         <div className="flex flex-col items-center pb-2 pt-2">
           <Image
             src={logo}
-            alt="AiToEarn"
+            alt="火花"
             width={56}
             height={56}
             className="mb-4 drop-shadow-md"

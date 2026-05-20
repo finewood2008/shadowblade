@@ -1,8 +1,8 @@
 # [Aitoearn: The Best Open-Source AI Agent for Content Marketing](https://aitoearn.ai)
 
-<a href="https://trendshift.io/repositories/20785" target="_blank"><img src="https://trendshift.io/api/badge/repositories/20785" alt="yikart%2FAiToEarn | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+<a href="https://trendshift.io/repositories/20785" target="_blank"><img src="https://trendshift.io/api/badge/repositories/20785" alt="yikart%2F火花 | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 
-[![GitHub stars](https://img.shields.io/github/stars/yikart/AiToEarn?color=fa6470)](https://github.com/yikart/AiToEarn/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/yikart/火花?color=fa6470)](https://github.com/yikart/火花/stargazers)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Required Node.JS 20.18.x](https://img.shields.io/static/v1?label=node&message=20.18.x&logo=node.js&color=3f893e)](https://nodejs.org/about/releases)
 
@@ -10,12 +10,12 @@ English | [简体中文](README.md) | [日本語](README_JA.md)
 
 **Monetize · Publish · Engage · Create — all in one platform.**
 
-AiToEarn helps OPCs (One-Person Companies), creators, brands, and businesses build, distribute, and monetize content with **AI-powered automation** across the world's most popular platforms.
+火花 helps OPCs (One-Person Companies), creators, brands, and businesses build, distribute, and monetize content with **AI-powered automation** across the world's most popular platforms.
 
 Supported Channels:
 Douyin, Xiaohongshu (Rednote), Kuaishou, Bilibili, WeChat Channels, WeChat Official Accounts, TikTok, YouTube, Facebook, Instagram, Threads, Twitter (X), Pinterest, LinkedIn
 
-## 🚀 Quick Start with AiToEarn (5 Ways)
+## 🚀 Quick Start with 火花 (5 Ways)
 
 | Option | Best for | Deployment needed? |
 |--------|----------|-------------------|
@@ -29,21 +29,21 @@ Douyin, Xiaohongshu (Rednote), Kuaishou, Bilibili, WeChat Channels, WeChat Offic
 
 ## What's New
 
-- **2026-04-20**: OpenClaw now supports AiToEarn earning workflows, so you can receive and execute monetization tasks directly inside OpenClaw.
-- **2026-03-26**: [2.1 version](https://www.aitoearn.ai/) — Content marketplace launched; added OpenClaw support for using AiToEarn directly within OpenClaw; added MCP protocol support for using AiToEarn in Claude, Cursor, and any MCP-compatible Agent or LLM.
+- **2026-04-20**: OpenClaw now supports 火花 earning workflows, so you can receive and execute monetization tasks directly inside OpenClaw.
+- **2026-03-26**: [2.1 version](https://www.aitoearn.ai/) — Content marketplace launched; added OpenClaw support for using 火花 directly within OpenClaw; added MCP protocol support for using 火花 in Claude, Cursor, and any MCP-compatible Agent or LLM.
 - **2026-02-07**: [1.8.0 version](https://www.aitoearn.ai/) — Added offline business promotion solutions for restaurants, retail stores, hotels, beauty salons, gyms, and more.
-- **2025-12-15**: "All In Agent" arrives! We've introduced a super AI agent that can automatically generate and publish content. [v1.4.3](https://github.com/yikart/AiToEarn/releases/tag/v1.4.3)
-- **2025-11-28**: Support automatic updates within the application. Added AI functions: abbreviation, expansion, image creation, video creation, tag generation, etc. [v1.4.0](https://github.com/yikart/AiToEarn/releases/tag/v1.4.0)
-- **2025-11-12**: The first open-source, fully usable version. [v1.3.2](https://github.com/yikart/AiToEarn/releases/tag/v1.3.2)
-- **2025-09-16**: First international version, added support for Facebook, Instagram, Threads, Twitter, YouTube, TikTok, Pinterest. [v1.0.18](https://github.com/yikart/AiToEarn/releases/tag/v1.0.18)
-- **2025-02-26**: First open-source release, initial support for one-click publishing to Xiaohongshu, Douyin, Kuaishou, and WeChat Channels. [v0.1.1](https://github.com/yikart/AiToEarn/releases/tag/v0.1.1)
+- **2025-12-15**: "All In Agent" arrives! We've introduced a super AI agent that can automatically generate and publish content. [v1.4.3](https://github.com/yikart/火花/releases/tag/v1.4.3)
+- **2025-11-28**: Support automatic updates within the application. Added AI functions: abbreviation, expansion, image creation, video creation, tag generation, etc. [v1.4.0](https://github.com/yikart/火花/releases/tag/v1.4.0)
+- **2025-11-12**: The first open-source, fully usable version. [v1.3.2](https://github.com/yikart/火花/releases/tag/v1.3.2)
+- **2025-09-16**: First international version, added support for Facebook, Instagram, Threads, Twitter, YouTube, TikTok, Pinterest. [v1.0.18](https://github.com/yikart/火花/releases/tag/v1.0.18)
+- **2025-02-26**: First open-source release, initial support for one-click publishing to Xiaohongshu, Douyin, Kuaishou, and WeChat Channels. [v0.1.1](https://github.com/yikart/火花/releases/tag/v0.1.1)
 
 <details>
   <summary><h2 style="display:inline;margin:0">Table of Contents</h2></summary>
 
   <br/>
 
-  1. [Quick Start with AiToEarn (5 Ways)](#-quick-start-with-aitoearn-5-ways)
+  1. [Quick Start with 火花 (5 Ways)](#-quick-start-with-aitoearn-5-ways)
   2. [What's New](#whats-new)
   3. [Key Features](#key-features)
   4. [How to Get an API Key](#get-api-key)
@@ -54,7 +54,7 @@ Douyin, Xiaohongshu (Rednote), Kuaishou, Bilibili, WeChat Channels, WeChat Offic
 
 ## Key Features
 
-AiToEarn provides four core Agent capabilities around the creator's full monetization pipeline:
+火花 provides four core Agent capabilities around the creator's full monetization pipeline:
 
 > **Monetize · Publish · Engage · Create**
 
@@ -62,7 +62,7 @@ AiToEarn provides four core Agent capabilities around the creator's full monetiz
 
 ### 💰 Monetize — Earn from Your Content
 
-The core mission of AiToEarn: **help every creator earn money**.
+The core mission of 火花: **help every creator earn money**.
 
 Creators can sell content on the platform to complete brand promotion tasks. All settlements are results-driven, with three models:
 
@@ -95,7 +95,7 @@ Distribute content to 10+ major platforms worldwide with one click — no more m
 
 ### 💬 Engage — Content Engagement Agent
 
-Automate engagement operations across all supported platforms via the AiToEarn browser extension.
+Automate engagement operations across all supported platforms via the 火花 browser extension.
 
 - **Automated Actions**: Auto-like, bookmark, and follow — batch operations at scale
 - **AI Smart Replies**: Use LLMs to generate targeted replies for each comment
@@ -165,9 +165,9 @@ npx -y @aitoearn/openclaw-plugin-cli
 
 On first run, select the environment and enter your API Key. Make sure they match: China uses an API Key from `aitoearn.cn`, and international uses one from `aitoearn.ai`. A mismatch returns 401.
 
-After setup, you can receive and execute AiToEarn earning tasks directly inside OpenClaw:
+After setup, you can receive and execute 火花 earning tasks directly inside OpenClaw:
 
-<img src="presentation/openclaw-earn-demo.png" alt="Run AiToEarn earning tasks in OpenClaw" width="360">
+<img src="presentation/openclaw-earn-demo.png" alt="Run 火花 earning tasks in OpenClaw" width="360">
 
 ---
 
@@ -175,7 +175,7 @@ After setup, you can receive and execute AiToEarn earning tasks directly inside 
 
 > Prerequisite: [Get an API Key](#get-api-key) first
 
-AiToEarn works with any MCP-compatible AI assistant. Here's how to configure the most popular ones:
+火花 works with any MCP-compatible AI assistant. Here's how to configure the most popular ones:
 
 Choose the URL that matches your API Key. A mismatched environment and key returns 401:
 
@@ -239,11 +239,11 @@ SSE transport is also available: `https://aitoearn.ai/api/unified/sse`
 
 > Prerequisite: [Docker](https://docs.docker.com/get-docker/) installed
 
-For teams wanting to run AiToEarn on their own server. 3 commands, no manual database setup:
+For teams wanting to run 火花 on their own server. 3 commands, no manual database setup:
 
 ```bash
-git clone https://github.com/yikart/AiToEarn.git
-cd AiToEarn
+git clone https://github.com/yikart/火花.git
+cd 火花
 docker compose up -d
 ```
 
@@ -303,10 +303,10 @@ pnpm run dev
 
 ```bash
 # Clone the repo
-git clone https://github.com/yikart/AttAiToEarn.git
+git clone https://github.com/yikart/Att火花.git
 
 # Enter directory
-cd AttAiToEarn
+cd Att火花
 
 # Install dependencies
 npm install
@@ -318,7 +318,7 @@ npm run rebuild
 npm run dev
 ```
 
-The Electron project provides a desktop client for AiToEarn.
+The Electron project provides a desktop client for 火花.
 
 </details>
 
@@ -328,7 +328,7 @@ Please see [Contributing Guide](./CONTRIBUTING.md) to get started.
 
 ## Contact
 
-If you run into usage difficulties, questions, or unexpected behavior, please open a [GitHub Issue](https://github.com/yikart/AiToEarn/issues) first so we can track and respond in one place.
+If you run into usage difficulties, questions, or unexpected behavior, please open a [GitHub Issue](https://github.com/yikart/火花/issues) first so we can track and respond in one place.
 
 - Telegram: [https://t.me/harryyyy2025](https://t.me/harryyyy2025)
 - WeChat: Scan to add

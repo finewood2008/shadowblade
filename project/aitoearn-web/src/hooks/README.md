@@ -54,7 +54,7 @@ function ChatPage() {
 
 ### 特性
 
-- **自动格式化**：标题格式为 `{title} —— AiToEarn`
+- **自动格式化**：标题格式为 `{title} —— 火花`
 - **默认值支持**：当 title 为空时使用 defaultTitle
 - **响应式更新**：title 变化时自动更新页面标题
 

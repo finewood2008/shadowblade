@@ -1,6 +1,6 @@
 /**
  * TermsOfServicePage - 服务条款页面
- * 展示 AiToEarn 平台服务条款和用户协议
+ * 展示 火花 平台服务条款和用户协议
  */
 import type { Metadata } from 'next'
 import { useTranslation } from '@/app/i18n'

@@ -1,9 +1,9 @@
 {
-  "name": "aiToEarn",
+  "name": "huohua",
   "version": "0.8.0",
   "main": "dist-electron/main/index.js",
-  "description": "艺咖 win打包使用管理员的终端",
-  "author": "艺咖",
+  "description": "火花 —— 一站式 AI 内容创作 / 分发 / 互动 / 变现桌面端",
+  "author": "qiu",
   "license": "MIT",
   "private": true,
   "engines": {

@@ -1,6 +1,6 @@
 # CONTRIBUTING
 
-So you're looking to contribute to AiToEarn - that's awesome! We can't wait to see what you do. We have grand ambitions to build the best platform for AI-driven earning. Any help from the community counts, truly.
+So you're looking to contribute to 火花 - that's awesome! We can't wait to see what you do. We have grand ambitions to build the best platform for AI-driven earning. Any help from the community counts, truly.
 
 We need to be nimble and ship fast, but we also want to make sure that contributors like you get as smooth an experience as possible. We've assembled this contribution guide for that purpose, aiming at getting you familiarized with the codebase & how we work with contributors, so you could quickly jump to the fun part.
 
@@ -8,7 +8,7 @@ This guide is a constant work in progress. We highly appreciate your understandi
 
 ## Before you jump in
 
-Looking for something to tackle? Browse our [issues](https://github.com/AiToEarn/AiToEarn/issues) and pick one to get started!
+Looking for something to tackle? Browse our [issues](https://github.com/火花/火花/issues) and pick one to get started!
 
 ### Good first issue
 

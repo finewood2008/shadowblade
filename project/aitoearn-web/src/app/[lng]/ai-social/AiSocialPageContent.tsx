@@ -218,7 +218,7 @@ export function AiSocialPageContent() {
       {/* AI Agent 功能亮点（独立展示） */}
       <AgentFeatures />
 
-      {/* 一图解读 AiToEarn 生态 */}
+      {/* 一图解读 火花 生态 */}
       <EcosystemDiagram />
 
       {/* 回到顶部按钮 - 右侧 */}

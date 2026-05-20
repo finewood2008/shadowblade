@@ -68,7 +68,7 @@
     "pluginActive": "插件已激活",
     "pluginInactive": "插件未激活",
     "downloadPlugin": "下载插件",
-    "downloadDescription": "AiToEarn 浏览器插件专门用于小红书的智能操作。请点击下方按钮下载安装。",
+    "downloadDescription": "火花 浏览器插件专门用于小红书的智能操作。请点击下方按钮下载安装。",
     "downloadButton": "立即下载",
     "chromeWebStore": "Chrome 应用商店",
     "chinaDownload": "中国地区下载",
@@ -95,6 +95,6 @@
     "title": "仅支持桌面端",
     "description": "浏览器插件无法在移动设备上使用，请前往电脑端浏览器安装和使用插件。",
     "goToPC": "请在电脑端访问",
-    "introduction": "AiToEarn平台浏览器插件，配合AiToEarn网页端使用，可自动化小红书，tiktok等平台互动，实现关注，点赞，收藏，评论等。"
+    "introduction": "火花平台浏览器插件，配合火花网页端使用，可自动化小红书，tiktok等平台互动，实现关注，点赞，收藏，评论等。"
   }
 }

@@ -88,8 +88,8 @@
     "materialLibrary": "Bibliothèque",
     "draftBox": "Gestion de contenu",
     "draftBoxSeoTitle": "Gestion de contenu - Création par lots IA et éditeur de brouillons",
-    "draftBoxSeoDescription": "Gérez tous vos brouillons de contenu en un seul endroit. Utilisez l'IA pour générer des publications par lots et organisez la distribution multi-plateformes avec AiToEarn.",
-    "draftBoxSeoKeywords": "gestion de contenu, éditeur de brouillons, génération de contenu IA, création par lots, brouillons réseaux sociaux, AiToEarn",
+    "draftBoxSeoDescription": "Gérez tous vos brouillons de contenu en un seul endroit. Utilisez l'IA pour générer des publications par lots et organisez la distribution multi-plateformes avec 火花.",
+    "draftBoxSeoKeywords": "gestion de contenu, éditeur de brouillons, génération de contenu IA, création par lots, brouillons réseaux sociaux, 火花",
     "agentAssets": "Ressources Agent"
   },
   "tasks": "Marché",
@@ -130,7 +130,7 @@
   "contact": "Besoin d'aide ? Contactez le support :",
   "uptime": {
     "seoTitle": "Statut des modèles IA - Surveillance de disponibilité en temps réel",
-    "pageKeywords": "statut modèle IA, disponibilité modèle, suivi disponibilité, santé service IA, surveillance modèle, AiToEarn statut",
+    "pageKeywords": "statut modèle IA, disponibilité modèle, suivi disponibilité, santé service IA, surveillance modèle, 火花 statut",
     "pageTitle": "Statut des modèles IA",
     "pageDescription": "Surveillez la disponibilité en temps réel et le temps de fonctionnement des modèles IA. Vérifiez le statut opérationnel de chaque modèle et fournisseur.",
     "loading": "Chargement...",

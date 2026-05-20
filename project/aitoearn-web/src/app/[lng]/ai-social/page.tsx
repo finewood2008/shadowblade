@@ -23,7 +23,7 @@ export async function generateMetadata({
     {
       title: t('seo.title'),
       description: t('seo.description'),
-      keywords: `${t('seo.keywords')}, aitoearn, AiToEarn`,
+      keywords: `${t('seo.keywords')}, aitoearn, 火花`,
       referrer: 'no-referrer',
     },
     lng,

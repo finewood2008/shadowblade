@@ -88,8 +88,8 @@
     "materialLibrary": "라이브러리",
     "draftBox": "콘텐츠 관리",
     "draftBoxSeoTitle": "콘텐츠 관리 - AI 일괄 생성 및 초안 편집기",
-    "draftBoxSeoDescription": "모든 콘텐츠 초안을 한 곳에서 관리하세요. AI로 소셜 미디어 게시물을 일괄 생성하고, 게시 전 초안을 편집하고, AiToEarn으로 멀티 플랫폼 배포를 정리하세요.",
-    "draftBoxSeoKeywords": "콘텐츠 관리, 초안 편집기, AI 콘텐츠 생성, 일괄 생성, 소셜 미디어 초안, AiToEarn",
+    "draftBoxSeoDescription": "모든 콘텐츠 초안을 한 곳에서 관리하세요. AI로 소셜 미디어 게시물을 일괄 생성하고, 게시 전 초안을 편집하고, 火花으로 멀티 플랫폼 배포를 정리하세요.",
+    "draftBoxSeoKeywords": "콘텐츠 관리, 초안 편집기, AI 콘텐츠 생성, 일괄 생성, 소셜 미디어 초안, 火花",
     "agentAssets": "Agent 자산"
   },
   "tasks": "마켓플레이스",
@@ -130,7 +130,7 @@
   "contact": "도움이 필요하세요? 지원팀에 문의하세요:",
   "uptime": {
     "seoTitle": "AI 모델 상태 - 실시간 모델 가용성 모니터링",
-    "pageKeywords": "AI 모델 상태, 모델 가용성, 가동률 추적, AI 서비스 상태, 모델 모니터링, AiToEarn 상태",
+    "pageKeywords": "AI 모델 상태, 모델 가용성, 가동률 추적, AI 서비스 상태, 모델 모니터링, 火花 상태",
     "pageTitle": "AI 모델 상태",
     "pageDescription": "AI 모델의 실시간 가용성과 가동 시간을 모니터링합니다. 각 모델과 제공업체의 작동 상태를 확인합니다.",
     "loading": "로딩 중...",

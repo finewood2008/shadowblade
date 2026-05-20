@@ -5,8 +5,8 @@
   },
   "seo": {
     "title": "Création de contenu et gestion des réseaux sociaux propulsées par l'IA",
-    "description": "AiToEarn fournit le service de création vidéo IA le plus pratique, aide à générer du trafic vers les magasins physiques et offre l'hébergement de comptes de médias sociaux pour la publication de contenu et l'interaction avec les commentaires.",
-    "keywords": "création vidéo IA,gestion des médias sociaux,publication multi-plateforme,marketing IA,création de contenu,automatisation des médias sociaux,AiToEarn,promotion de marque"
+    "description": "火花 fournit le service de création vidéo IA le plus pratique, aide à générer du trafic vers les magasins physiques et offre l'hébergement de comptes de médias sociaux pour la publication de contenu et l'interaction avec les commentaires.",
+    "keywords": "création vidéo IA,gestion des médias sociaux,publication multi-plateforme,marketing IA,création de contenu,automatisation des médias sociaux,火花,promotion de marque"
   },
   "navbar": {
     "pricing": "Tarifs",
@@ -19,7 +19,7 @@
   "hero": {
     "badge": "Croissance de restaurant alimentée par l'IA",
     "title": "Opérateur de croissance IA pour les entrepreneurs solo",
-    "subtitle": "Avec AiToEarn, vous pouvez facilement générer du trafic vers vos magasins physiques. AiToEarn vous fournit le service de création vidéo IA le plus pratique. Vous pouvez également héberger vos comptes de médias sociaux sur AiToEarn, et nous vous aiderons pour la publication de contenu et l'interaction avec les commentaires.",
+    "subtitle": "Avec 火花, vous pouvez facilement générer du trafic vers vos magasins physiques. 火花 vous fournit le service de création vidéo IA le plus pratique. Vous pouvez également héberger vos comptes de médias sociaux sur 火花, et nous vous aiderons pour la publication de contenu et l'interaction avec les commentaires.",
     "placeholder": "Trouvez votre restaurant",
     "cta": "Obtenir mon Agent IA",
     "selectFirst": "Veuillez d'abord sélectionner un restaurant",
@@ -52,13 +52,13 @@
   },
   "reviews": {
     "title": "Ce que disent nos utilisateurs",
-    "subtitle": "Rejoignez des milliers d'entrepreneurs individuels qui font confiance à AiToEarn",
+    "subtitle": "Rejoignez des milliers d'entrepreneurs individuels qui font confiance à 火花",
     "viewOnGithub": "Voir sur GitHub",
     "review1": {
       "content": "Enfin un outil open source qui gère la publication multi-plateforme ! Un clic vers Douyin, TikTok, YouTube - me fait gagner des heures chaque semaine."
     },
     "review2": {
-      "content": "En tant qu'entrepreneur individuel, AiToEarn change la donne. L'IA génère du contenu, publie automatiquement, gère même les commentaires. Mes réseaux sociaux fonctionnent tout seuls maintenant."
+      "content": "En tant qu'entrepreneur individuel, 火花 change la donne. L'IA génère du contenu, publie automatiquement, gère même les commentaires. Mes réseaux sociaux fonctionnent tout seuls maintenant."
     },
     "review3": {
       "content": "La fonction Agent IA est incroyable. Elle écrit, optimise et publie du contenu automatiquement. Les coûts de contenu ont chuté de 90%."
@@ -96,7 +96,7 @@
     "watchVideo": "Regarder la vidéo"
   },
   "beliefs": {
-    "title": "Pourquoi choisir AiToEarn",
+    "title": "Pourquoi choisir 火花",
     "subtitle": "Conçu pour les entrepreneurs individuels et les petites entreprises",
     "belief1": {
       "title": "Conçu pour les entrepreneurs individuels",
@@ -173,6 +173,6 @@
     "extensionPrivacy": "Politique de confidentialité de l'extension",
     "contact": "Nous contacter",
     "supportedPlatforms": "Plateformes supportées",
-    "copyright": "© 2026 AiToEarn. Tous droits réservés."
+    "copyright": "© 2026 火花. Tous droits réservés."
   }
 }

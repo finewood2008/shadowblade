@@ -1,11 +1,11 @@
 {
   "seo": {
     "loginTitle": "Sign In - Access Your AI Content Workspace",
-    "loginKeywords": "login, sign in, AiToEarn account, AI platform login, content creator login, social media management",
-    "loginDescription": "Sign in to your AiToEarn account to start your AI creative journey. Supports Google login and email verification code login."
+    "loginKeywords": "login, sign in, 火花 account, AI platform login, content creator login, social media management",
+    "loginDescription": "Sign in to your 火花 account to start your AI creative journey. Supports Google login and email verification code login."
   },
   "welcomeBack": "Sign in",
-  "loginSubtitle": "Start creating with AiToEarn",
+  "loginSubtitle": "Start creating with 火花",
   "emailPlaceholder": "Enter your email address",
   "login": "Sign in",
   "or": "or",

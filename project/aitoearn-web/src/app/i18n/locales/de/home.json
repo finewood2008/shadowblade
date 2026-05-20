@@ -1,7 +1,7 @@
 {
   "dropToUpload": "Zum Hochladen ablegen",
   "announcement": {
-    "text": "AiToEarn verwendet einen Agenten, um alle Ihre Inhaltsbedürfnisse zu erfüllen. Er ruft während der Ausführung viele Tools auf, was einige Zeit dauern kann. Sie können jederzeit beenden und den Aufgabenfortschritt später überprüfen."
+    "text": "火花 verwendet einen Agenten, um alle Ihre Inhaltsbedürfnisse zu erfüllen. Er ruft während der Ausführung viele Tools auf, was einige Zeit dauern kann. Sie können jederzeit beenden und den Aufgabenfortschritt später überprüfen."
   },
   "releaseBanner": {
     "tag": "Release v0.8.0",
@@ -27,14 +27,14 @@
     "starsText": "Sterne auf",
     "github": "GitHub",
     "title": "Der beste Content-Marketing\nKI-Agent",
-    "subtitle": "Ab heute verwalten Sie Ihre Social Media ganz einfach mit KI. AiToEarn bietet Komplettlösungen von kreativer Inspiration, Inhaltserstellung, Inhaltsverteilung bis hin zur Interaktionsverwaltung und macht KI für jeden zugänglich.",
+    "subtitle": "Ab heute verwalten Sie Ihre Social Media ganz einfach mit KI. 火花 bietet Komplettlösungen von kreativer Inspiration, Inhaltserstellung, Inhaltsverteilung bis hin zur Interaktionsverwaltung und macht KI für jeden zugänglich.",
     "getStarted": "Loslegen",
     "useMobilePhone": "Auf dem Handy nutzen"
   },
   "seo": {
     "title": "KI-Video- & Content-Erstellung für 15+ Social-Plattformen",
-    "description": "AiToEarn ist Ihr KI-gestützter Social-Media-Wachstumsoperator. Generieren Sie Videos, Bilder und Texte mit KI und veröffentlichen Sie mit einem Klick auf über 15 Plattformen wie TikTok, YouTube, Instagram, Facebook und X. Mit KI-Content-Erstellung, Smart-Videobearbeitung, Stiltransfer, Videoübersetzung, Trendentdeckung, Markenüberwachung und einheitlichem Engagement-Dashboard.",
-    "keywords": "KI-Content-Marketing, KI-Social-Media-Management, KI-Videogenerierung, Multi-Plattform-Publishing, KI-Inhaltserstellung, Social-Media-Automatisierung, TikTok-Marketing, YouTube-Marketing, KI-Agent, Content-Distribution, KI-Texterstellung, Videobearbeitung KI, Markenüberwachung, AiToEarn"
+    "description": "火花 ist Ihr KI-gestützter Social-Media-Wachstumsoperator. Generieren Sie Videos, Bilder und Texte mit KI und veröffentlichen Sie mit einem Klick auf über 15 Plattformen wie TikTok, YouTube, Instagram, Facebook und X. Mit KI-Content-Erstellung, Smart-Videobearbeitung, Stiltransfer, Videoübersetzung, Trendentdeckung, Markenüberwachung und einheitlichem Engagement-Dashboard.",
+    "keywords": "KI-Content-Marketing, KI-Social-Media-Management, KI-Videogenerierung, Multi-Plattform-Publishing, KI-Inhaltserstellung, Social-Media-Automatisierung, TikTok-Marketing, YouTube-Marketing, KI-Agent, Content-Distribution, KI-Texterstellung, Videobearbeitung KI, Markenüberwachung, 火花"
   },
   "agentGenerator": {
     "title": "Wie kann ich Ihnen helfen?",
@@ -399,14 +399,14 @@
       "twitter": "Twitter"
     },
     "bigText": "Let's Use AI To",
-    "copyright": "© 2025 AiToEarn, Corp.",
+    "copyright": "© 2025 火花, Corp.",
     "tagline": "",
     "dataDeletion": {
       "title": "Anleitung zur Datenlöschung",
       "prelaunch": "Unsere Anwendung befindet sich derzeit in der Pre-Launch-Phase und speichert keine echten Benutzerdaten. Wenn Sie mit unseren Testsystemen interagiert haben, kontaktieren Sie uns zur Datenentfernung.",
       "standardTitle": "Standardverfahren (nach dem Launch):",
       "standardSteps": [
-        "Melden Sie sich bei Ihrem AiToEarn-Konto an",
+        "Melden Sie sich bei Ihrem 火花-Konto an",
         "Navigieren Sie zu Einstellungen > Datenschutz",
         "Klicken Sie auf \"Kontolöschung anfordern\"",
         "Bestätigung wird an Ihre registrierte E-Mail gesendet"

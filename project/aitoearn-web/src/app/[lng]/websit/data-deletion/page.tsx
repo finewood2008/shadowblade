@@ -1,6 +1,6 @@
 /**
  * DataDeletionPage - 数据删除指南页面
- * 展示如何删除 AiToEarn 账户和个人数据的说明
+ * 展示如何删除 火花 账户和个人数据的说明
  */
 import type { Metadata } from 'next'
 import { useTranslation } from '@/app/i18n'
@@ -54,7 +54,7 @@ export default function DataDeletionPage() {
               <ol className={styles.stepsList}>
                 <li className={styles.stepItem}>
                   <div className={styles.stepNumber}>1</div>
-                  <div className={styles.stepText}>Log in to your AiToEarn account</div>
+                  <div className={styles.stepText}>Log in to your 火花 account</div>
                 </li>
                 <li className={styles.stepItem}>
                   <div className={styles.stepNumber}>2</div>

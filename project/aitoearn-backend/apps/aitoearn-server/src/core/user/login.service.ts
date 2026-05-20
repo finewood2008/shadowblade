@@ -31,7 +31,7 @@ export class LoginService {
     try {
       return this.mailService.sendEmail({
         to: mail,
-        subject: 'AiToEarn: Your Verification Code',
+        subject: '火花: Your Verification Code',
         template: 'mail/login',
         context: {
           mail,
@@ -63,14 +63,14 @@ export class LoginService {
       //   {
       //     code,
       //   },
-      //   subject: 'AiToEarn Verification Code',
+      //   subject: '火花 Verification Code',
       //   from_email: 'noreply@tx.aitoearn.ai',
       // })
       // return res
 
       return this.mailService.sendEmail({
         to: mail,
-        subject: 'AiToEarn: Password Reset Verification Code',
+        subject: '火花: Password Reset Verification Code',
         template: 'mail/repassword',
         context: {
           code,
@@ -101,14 +101,14 @@ export class LoginService {
       //   {
       //     code,
       //   },
-      //   subject: 'AiToEarn Verification Code',
+      //   subject: '火花 Verification Code',
       //   from_email: 'noreply@tx.aitoearn.ai',
       // })
       // return res
 
       return this.mailService.sendEmail({
         to: mail,
-        subject: 'AiToEarn: Account Cancellation Confirmation',
+        subject: '火花: Account Cancellation Confirmation',
         template: 'mail/cancel',
         context: {
           code,

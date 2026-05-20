@@ -1,6 +1,6 @@
 /**
- * EcosystemDiagram - AiToEarn 生态系统图
- * 一图解释 AiToEarn 的核心功能和生态闭环
+ * EcosystemDiagram - 火花 生态系统图
+ * 一图解释 火花 的核心功能和生态闭环
  * 设计风格：白色背景 + 宇宙行星动画 + 环形布局 + 自动轮播详情
  */
 'use client'

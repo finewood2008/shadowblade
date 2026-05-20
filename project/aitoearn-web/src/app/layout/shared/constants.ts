@@ -4,7 +4,7 @@
  */
 
 /** GitHub 仓库地址 */
-export const GITHUB_REPO = 'yikart/AiToEarn'
+export const GITHUB_REPO = 'yikart/火花'
 
 /** 文档网站地址 */
 export const DOCS_URL = 'https://docs.aitoearn.ai'

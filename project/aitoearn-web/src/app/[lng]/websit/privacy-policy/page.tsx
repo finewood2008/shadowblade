@@ -1,6 +1,6 @@
 /**
  * PrivacyPolicyPage - 隐私政策页面
- * 展示 AiToEarn 平台隐私政策和数据保护说明
+ * 展示 火花 平台隐私政策和数据保护说明
  */
 import type { Metadata } from 'next'
 import { useTranslation } from '@/app/i18n'

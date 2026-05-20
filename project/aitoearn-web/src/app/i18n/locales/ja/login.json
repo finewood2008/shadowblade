@@ -1,11 +1,11 @@
 {
   "seo": {
     "loginTitle": "ログイン - AIコンテンツワークスペースにアクセス",
-    "loginKeywords": "ログイン, サインイン, AiToEarnアカウント, AIプラットフォームログイン, クリエイターログイン, SNS管理",
-    "loginDescription": "AiToEarnアカウントにサインインして、AIクリエイティブの旅を始めましょう。Googleログインとメール認証コードに対応しています。"
+    "loginKeywords": "ログイン, サインイン, 火花アカウント, AIプラットフォームログイン, クリエイターログイン, SNS管理",
+    "loginDescription": "火花アカウントにサインインして、AIクリエイティブの旅を始めましょう。Googleログインとメール認証コードに対応しています。"
   },
   "welcomeBack": "サインイン",
-  "loginSubtitle": "AiToEarnで創作を始めましょう",
+  "loginSubtitle": "火花で創作を始めましょう",
   "emailPlaceholder": "メールアドレスを入力",
   "login": "サインイン",
   "or": "または",

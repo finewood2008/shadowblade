@@ -111,8 +111,8 @@ function AnimationStyles() {
 function BrandHeader() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-      <Image src={logo} alt="AiToEarn" width={32} height={32} style={{ borderRadius: 8 }} />
-      <span style={{ fontSize: 18, fontWeight: 600, color: colors.text, letterSpacing: '-0.025em' }}>AiToEarn</span>
+      <Image src={logo} alt="火花" width={32} height={32} style={{ borderRadius: 8 }} />
+      <span style={{ fontSize: 18, fontWeight: 600, color: colors.text, letterSpacing: '-0.025em' }}>火花</span>
     </div>
   )
 }

@@ -1,6 +1,6 @@
-# AiToEarn Docker Deployment Guide
+# 火花 Docker Deployment Guide
 
-This guide helps you quickly deploy the complete AiToEarn application using Docker Compose.
+This guide helps you quickly deploy the complete 火花 application using Docker Compose.
 
 ## Architecture
 
@@ -53,13 +53,13 @@ docker compose version
 
 ## 🚀 Get Running in 3 Minutes
 
-Just 3 steps to run the complete AiToEarn on your machine.
+Just 3 steps to run the complete 火花 on your machine.
 
 ### Step 1: Clone and Start
 
 ```bash
-git clone https://github.com/yikart/AiToEarn.git
-cd AiToEarn
+git clone https://github.com/yikart/火花.git
+cd 火花
 docker compose up -d
 ```
 
@@ -75,7 +75,7 @@ Visit: **[http://localhost:8080](http://localhost:8080)**
 
 > **Why configure Relay?**
 >
-> AiToEarn needs to log into your social media accounts (TikTok, Instagram, YouTube, etc.) to publish content. These platforms require OAuth developer credentials for authorization.
+> 火花 needs to log into your social media accounts (TikTok, Instagram, YouTube, etc.) to publish content. These platforms require OAuth developer credentials for authorization.
 >
 > - **Without Relay**: You'd need to register as a developer on each platform and obtain client_id/secret — extremely tedious.
 > - **With Relay**: Use the official aitoearn.ai credentials to authorize all platforms with **just one API Key**.

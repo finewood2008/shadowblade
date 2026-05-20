@@ -84,7 +84,7 @@ export function ReviewsSection() {
         {/* 底部按钮 - GitHub */}
         <div className="mt-8 flex justify-center">
           <a
-            href="https://github.com/yikart/AiToEarn"
+            href="https://github.com/yikart/火花"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
