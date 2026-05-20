@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>火花 · 一束火点燃创作 → 分发 → 互动 → 变现</title>
+<meta name="description" content="火花是面向一人公司/创作者的 AI 内容营销桌面端，覆盖 13+ 平台。Fork from yikart/AiToEarn。">
+<style>
+  :root {
+    --p50:#f5f3ff; --p100:#ede9fe; --p300:#c4b5fd;
+    --p500:#8b5cf6; --p600:#7c3aed; --p700:#6d28d9;
+    --ink:#1f1147; --muted:#6b7280;
+  }
+  * { box-sizing: border-box; margin:0; padding:0 }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    background: linear-gradient(180deg, #fff 0%, var(--p50) 50%, #fff 100%);
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 80px 24px; }
+  header { text-align:center; margin-bottom: 64px; }
+  header img { width: 96px; height: 96px; filter: drop-shadow(0 12px 32px rgba(139,92,246,0.35)); }
+  h1 {
+    font-size: 48px; margin: 24px 0 12px;
+    background: linear-gradient(90deg, var(--p500), var(--p700));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    letter-spacing: -1px;
+  }
+  .tag { color: var(--muted); font-size: 18px; }
+  .cta { margin: 40px 0 0; display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    padding: 14px 26px; border-radius: 12px; text-decoration:none;
+    font-weight:600; font-size: 15px; transition: transform .15s, box-shadow .15s;
+  }
+  .btn-primary { background: var(--p600); color:#fff; box-shadow: 0 8px 20px rgba(124,58,237,.35); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(124,58,237,.5); }
+  .btn-ghost { background: #fff; color: var(--p700); border: 1.5px solid var(--p300); }
+  .btn-ghost:hover { background: var(--p50); }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 56px 0; }
+  .card {
+    background: #fff; padding: 24px; border-radius: 16px;
+    border: 1px solid var(--p100); box-shadow: 0 2px 8px rgba(139,92,246,.06);
+  }
+  .card .icn { font-size: 28px; margin-bottom: 12px; display:block; }
+  .card h3 { font-size: 16px; margin-bottom: 6px; color: var(--p700); }
+  .card p { font-size: 14px; color: var(--muted); }
+  section { margin: 48px 0; }
+  h2 { font-size: 26px; margin-bottom: 20px; color: var(--ink); }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { background: var(--p100); color: var(--p700); padding: 6px 12px; border-radius: 999px; font-size:13px; }
+  footer { margin-top: 80px; padding-top: 32px; border-top: 1px solid var(--p100); text-align:center; color:var(--muted); font-size:13px; }
+  footer a { color: var(--p600); text-decoration:none; }
+  code { background: var(--p50); padding: 2px 8px; border-radius: 6px; font-size:13px; color: var(--p700); }
+  pre { background: var(--ink); color:#e9d5ff; padding:18px; border-radius:12px; overflow:auto; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="../../assets/brand/huohua-logo.svg" alt="火花 logo">
+    <h1>火花 · Huohua</h1>
+    <p class="tag">一束火点燃创作 → 分发 → 互动 → 变现 的全链路</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="#download">⬇️ 下载 macOS 版</a>
+      <a class="btn btn-ghost" href="https://github.com/yikart/AiToEarn" target="_blank">源码 (上游)</a>
+    </div>
+  </header>
+
+  <section>
+    <h2>四环能力</h2>
+    <div class="grid">
+      <div class="card"><span class="icn">✍️</span><h3>Create</h3><p>AI 生成文案 / 图片 / 视频 / 标签</p></div>
+      <div class="card"><span class="icn">📤</span><h3>Publish</h3><p>一键同步 13+ 主流平台</p></div>
+      <div class="card"><span class="icn">💬</span><h3>Engage</h3><p>评论 / 私信半自动托管</p></div>
+      <div class="card"><span class="icn">💰</span><h3>Monetize</h3><p>CPS / CPE / CPM 三种结算</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>支持平台</h2>
+    <div class="chips">
+      <span class="chip">抖音</span><span class="chip">小红书</span><span class="chip">快手</span>
+      <span class="chip">视频号</span><span class="chip">哔哩哔哩</span><span class="chip">TikTok</span>
+      <span class="chip">YouTube</span><span class="chip">Instagram</span><span class="chip">Threads</span>
+      <span class="chip">X / Twitter</span><span class="chip">Pinterest</span><span class="chip">LinkedIn</span>
+      <span class="chip">Facebook</span>
+    </div>
+  </section>
+
+  <section id="download">
+    <h2>下载</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Apple Silicon</h3>
+        <p>M1 / M2 / M3 / M4 · 269MB · arm64</p>
+        <p style="margin-top:12px"><a href="../../project/aitoearn-electron/release/0.8.0/火花-0.8.0-arm64.dmg" class="btn btn-primary" style="padding:8px 16px;font-size:13px">下载 dmg</a></p>
+      </div>
+      <div class="card">
+        <h3>Intel Mac</h3>
+        <p>x64 · 273MB</p>
+        <p style="margin-top:12px"><a href="../../project/aitoearn-electron/release/0.8.0/火花-0.8.0-x64.dmg" class="btn btn-primary" style="padding:8px 16px;font-size:13px">下载 dmg</a></p>
+      </div>
+    </div>
+    <p style="margin-top:18px;color:var(--muted);font-size:14px">
+      首次打开若提示「已损坏」，终端跑：
+    </p>
+    <pre>xattr -cr /Applications/火花.app</pre>
+  </section>
+
+  <section>
+    <h2>致谢</h2>
+    <p style="color:var(--muted)">
+      火花基于 <a href="https://github.com/yikart/AiToEarn" style="color:var(--p600)">yikart/AiToEarn</a>（MIT · 14.9k stars）二次开发，
+      核心架构与 Agent 能力均归属上游 yikart 团队。商用 / 团队请直接使用
+      <a href="https://aitoearn.ai" style="color:var(--p600)">官方版本</a>。
+    </p>
+  </section>
+
+  <footer>
+    🔥 「你只管想内容，剩下都交给火花。」 ·
+    <a href="https://github.com/yikart/AiToEarn">原项目</a> ·
+    MIT License
+  </footer>
+
+</div>
+</body>
+</html>
