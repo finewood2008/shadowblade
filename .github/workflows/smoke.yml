@@ -24,6 +24,11 @@ jobs:
         working-directory: project/aitoearn-electron
         run: npm install --no-audit --no-fund
 
+      - name: 品牌残留守门
+        run: |
+          chmod +x scripts/check_brand_residue.sh
+          ./scripts/check_brand_residue.sh
+
       - name: 准备图标 (build/icon.icns 由仓库提供)
         run: ls project/aitoearn-electron/build/icon.icns
 
