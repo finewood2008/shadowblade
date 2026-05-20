@@ -1,0 +1,103 @@
+audio:
+  Azure:
+    service_region: SERVICE_REGION
+    speech_key: SPEECH_KEY
+  Ali:
+    access_key_id: ACCESS_KEY_ID
+    access_key_secret: ACCESS_KEY_SECRET
+    app_key: APP_KEY
+  Tencent:
+    access_key_id: ACCESS_KEY_ID
+    access_key_secret: ACCESS_KEY_SECRET
+    app_key: APP_KEY
+  provider: Azure
+  local_tts:
+    provider: chatTTS
+    chatTTS:
+      server_location: http://127.0.0.1:8080/
+    GPTSoVITS:
+      server_location: http://127.0.0.1:9880/
+  local_recognition:
+    provider: fasterwhisper
+    fasterwhisper:
+      model_name: tiny
+      device_type: cuda
+      compute_type: int8
+
+
+captioning:
+  provider: Azure
+
+llm:
+  Ollama:
+    api_key: YOUR_API_KEY
+    base_url: http://127.0.0.1:11434/
+    model_name: llama3
+  DeepSeek:
+    api_key: YOUR_API_KEY
+    base_url: https://api.deepseek.com/
+    model_name: deepseek-chat
+  Baichuan:
+    api_key: YOUR_API_KEY
+    model_name: Baichuan3-Turbo
+  Moonshot:
+    api_key: YOUR_API_KEY
+    model_name: moonshot-v1-8k
+  Tongyi:
+    api_key: YOUR_API_KEY
+    model_name: qwen-turbo
+  OpenAI:
+    api_key: YOUR_API_KEY
+    model_name: gpt-3.5-turbo
+  Azure:
+    api_key: YOUR_API_KEY
+    base_url: http://base.url.openai
+    model_name: null
+  Qianfan:
+    api_key: YOUR_API_KEY
+    secret_key: YOUR_SK_KEY
+    model_name: ERNIE-Bot-turbo
+  provider: Moonshot
+resource:
+  pexels:
+    api_key: API_KEY
+  pixabay:
+    api_key: API_KEY
+  provider: pexels
+ui:
+  language: zh-CN
+video:
+
+test_mode: False
+
+publisher:
+  driver_type: chrome
+  content_location:
+  driver_location:
+  auto_publish: True
+  common:
+    enable: True
+    title_prefix: 标题前缀
+    collection: 集合名称
+  douyin:
+    enable: True
+    title_prefix: 标题前缀
+    collection: 集合名称
+  kuaishou:
+    enable: True
+    title_prefix: 标题前缀
+    collection: 集合名称
+    domain:
+      enable: True
+      level1: 教育
+      level2: 语言教育
+  xiaohongshu:
+    enable: True
+    title_prefix: 标题前缀
+    collection: 集合名称
+  shipinhao:
+    enable: True
+    original: False
+    title_prefix: 标题前缀
+    collection: 集合名称
+

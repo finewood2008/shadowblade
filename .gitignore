@@ -45,3 +45,27 @@ public/bin/*
 
 sh/*
 project/web/.cursor/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+.eggs/
+venv/
+.venv/
+
+# Huohua / Shadowblade specific
+config/config.yml          # contains API keys - DO NOT COMMIT
+app/work/                  # temp working files
+app/final/                 # generated videos
+work/                      # temp files
+final/                     # output files
+*.mp4                      # video files (too large for git)
+*.wav                      # audio files
+*.mp3                      # audio files
+*.srt                      # subtitle files
+work/thumbnails/
+assets/beauty/             # stock video assets (download separately)
+.claude/

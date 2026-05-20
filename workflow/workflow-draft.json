@@ -1,0 +1,689 @@
+{
+  "name": "Spark Video - Beauty Biz Auto Mix",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "spark-video",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-4000-8000-000000000001",
+      "name": "Webhook - Receive Task",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'accepted', task_id: $json.body.task_id, message: '任务已接收，处理中' }) }}",
+        "options": {
+          "responseCode": 202
+        }
+      },
+      "id": "a1b2c3d4-0002-4000-8000-000000000002",
+      "name": "Respond 202 Accepted",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [220, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-001",
+              "leftValue": "={{ $json.body.shop_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            },
+            {
+              "id": "cond-002",
+              "leftValue": "={{ $json.body.video_urls.length }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0003-4000-8000-000000000003",
+      "name": "IF - Validate Input",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/generate-script",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $json.body.task_id, shop_name: $json.body.shop_name, service_type: $json.body.service_type, selling_points: $json.body.selling_points, style_preference: $json.body.style_preference, target_duration: $json.body.target_duration }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "a1b2c3d4-0004-4000-8000-000000000004",
+      "name": "HTTP - Generate Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/generate-audio",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $('Webhook - Receive Task').item.json.body.task_id, script: $json.script }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "a1b2c3d4-0005-4000-8000-000000000005",
+      "name": "HTTP - Generate Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/mix-video",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $('Webhook - Receive Task').item.json.body.task_id, video_urls: $('Webhook - Receive Task').item.json.body.video_urls, audio_url: $json.audio_url, script: $('HTTP - Generate Script').item.json.script, target_duration: $('Webhook - Receive Task').item.json.body.target_duration }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "a1b2c3d4-0006-4000-8000-000000000006",
+      "name": "HTTP - Mix Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 10000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/generate-subtitle",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $('Webhook - Receive Task').item.json.body.task_id, video_url: $json.video_url, script: $('HTTP - Generate Script').item.json.script }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "id": "a1b2c3d4-0007-4000-8000-000000000007",
+      "name": "HTTP - Generate Subtitle",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1320, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:8000/generate-cover",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $('Webhook - Receive Task').item.json.body.task_id, video_url: $json.video_with_subtitle_url, title: $('HTTP - Generate Script').item.json.title, shop_name: $('Webhook - Receive Task').item.json.body.shop_name }) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "a1b2c3d4-0008-4000-8000-000000000008",
+      "name": "HTTP - Generate Cover",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1540, 300],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "assign-001",
+              "name": "task_id",
+              "value": "={{ $('Webhook - Receive Task').item.json.body.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-002",
+              "name": "shop_name",
+              "value": "={{ $('Webhook - Receive Task').item.json.body.shop_name }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-003",
+              "name": "video_url",
+              "value": "={{ $('HTTP - Generate Subtitle').item.json.video_with_subtitle_url }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-004",
+              "name": "cover_url",
+              "value": "={{ $json.cover_url }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-005",
+              "name": "title",
+              "value": "={{ $('HTTP - Generate Script').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-006",
+              "name": "script",
+              "value": "={{ $('HTTP - Generate Script').item.json.script }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-007",
+              "name": "hashtags",
+              "value": "={{ JSON.stringify($('HTTP - Generate Script').item.json.hashtags) }}",
+              "type": "string"
+            },
+            {
+              "id": "assign-008",
+              "name": "duration",
+              "value": "={{ $('HTTP - Mix Video').item.json.actual_duration }}",
+              "type": "number"
+            },
+            {
+              "id": "assign-009",
+              "name": "status",
+              "value": "pending_review",
+              "type": "string"
+            },
+            {
+              "id": "assign-010",
+              "name": "callback_url",
+              "value": "={{ $('Webhook - Receive Task').item.json.body.callback_url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "a1b2c3d4-0009-4000-8000-000000000009",
+      "name": "Set - Assemble Package",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1760, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.callback_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $json.task_id, status: 'pending_review', publish_package: { video_url: $json.video_url, cover_url: $json.cover_url, title: $json.title, script: $json.script, hashtags: JSON.parse($json.hashtags), duration: $json.duration }, review_callback_url: $execution.resumeUrl }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "a1b2c3d4-0010-4000-8000-000000000010",
+      "name": "HTTP - Notify Review",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1980, 300],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "POST",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0011-4000-8000-000000000011",
+      "name": "Wait - Merchant Review",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2200, 300],
+      "webhookId": "d4e5f6a7-b8c9-4d0e-a1b2-c3d4e5f6a7b8"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-review-001",
+              "leftValue": "={{ $json.body.decision }}",
+              "rightValue": "approved",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0012-4000-8000-000000000012",
+      "name": "IF - Review Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2420, 300]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "final-001",
+              "name": "task_id",
+              "value": "={{ $('Set - Assemble Package').item.json.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "final-002",
+              "name": "status",
+              "value": "approved",
+              "type": "string"
+            },
+            {
+              "id": "final-003",
+              "name": "video_url",
+              "value": "={{ $('Set - Assemble Package').item.json.video_url }}",
+              "type": "string"
+            },
+            {
+              "id": "final-004",
+              "name": "cover_url",
+              "value": "={{ $('Set - Assemble Package').item.json.cover_url }}",
+              "type": "string"
+            },
+            {
+              "id": "final-005",
+              "name": "title",
+              "value": "={{ $('Set - Assemble Package').item.json.title }}",
+              "type": "string"
+            },
+            {
+              "id": "final-006",
+              "name": "script",
+              "value": "={{ $('Set - Assemble Package').item.json.script }}",
+              "type": "string"
+            },
+            {
+              "id": "final-007",
+              "name": "hashtags",
+              "value": "={{ $('Set - Assemble Package').item.json.hashtags }}",
+              "type": "string"
+            },
+            {
+              "id": "final-008",
+              "name": "duration",
+              "value": "={{ $('Set - Assemble Package').item.json.duration }}",
+              "type": "number"
+            },
+            {
+              "id": "final-009",
+              "name": "approved_at",
+              "value": "={{ new Date().toISOString() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "a1b2c3d4-0013-4000-8000-000000000013",
+      "name": "Set - Final Package (Approved)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2640, 200]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "duplicateItem": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "reject-001",
+              "name": "task_id",
+              "value": "={{ $('Set - Assemble Package').item.json.task_id }}",
+              "type": "string"
+            },
+            {
+              "id": "reject-002",
+              "name": "status",
+              "value": "revision_requested",
+              "type": "string"
+            },
+            {
+              "id": "reject-003",
+              "name": "modifications",
+              "value": "={{ JSON.stringify($json.body.modifications) }}",
+              "type": "string"
+            },
+            {
+              "id": "reject-004",
+              "name": "original_package_video_url",
+              "value": "={{ $('Set - Assemble Package').item.json.video_url }}",
+              "type": "string"
+            },
+            {
+              "id": "reject-005",
+              "name": "original_package_title",
+              "value": "={{ $('Set - Assemble Package').item.json.title }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      },
+      "id": "a1b2c3d4-0014-4000-8000-000000000014",
+      "name": "Set - Revision Needed",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2640, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set - Assemble Package').item.json.callback_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $json.task_id, status: $json.status, final_package: { video_url: $json.video_url, cover_url: $json.cover_url, title: $json.title, script: $json.script, hashtags: $json.hashtags, duration: $json.duration }, approved_at: $json.approved_at }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "a1b2c3d4-0015-4000-8000-000000000015",
+      "name": "HTTP - Deliver Final Package",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 200],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Set - Assemble Package').item.json.callback_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $json.task_id, status: 'revision_requested', modifications: JSON.parse($json.modifications), message: '商家要求修改，请查看修改意见' }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "a1b2c3d4-0016-4000-8000-000000000016",
+      "name": "HTTP - Notify Revision Needed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2860, 480],
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0017-4000-8000-000000000017",
+      "name": "NoOp - Done",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3080, 200]
+    },
+    {
+      "parameters": {},
+      "id": "a1b2c3d4-0018-4000-8000-000000000018",
+      "name": "NoOp - Revision End",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [3080, 480]
+    }
+  ],
+  "connections": {
+    "Webhook - Receive Task": {
+      "main": [
+        [
+          {
+            "node": "Respond 202 Accepted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond 202 Accepted": {
+      "main": [
+        [
+          {
+            "node": "IF - Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Validate Input": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Generate Script",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "HTTP - Generate Script": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Generate Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Generate Audio": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Mix Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Mix Video": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Generate Subtitle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Generate Subtitle": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Generate Cover",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Generate Cover": {
+      "main": [
+        [
+          {
+            "node": "Set - Assemble Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Assemble Package": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Notify Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Notify Review": {
+      "main": [
+        [
+          {
+            "node": "Wait - Merchant Review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait - Merchant Review": {
+      "main": [
+        [
+          {
+            "node": "IF - Review Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Review Decision": {
+      "main": [
+        [
+          {
+            "node": "Set - Final Package (Approved)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set - Revision Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Final Package (Approved)": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Deliver Final Package",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Revision Needed": {
+      "main": [
+        [
+          {
+            "node": "HTTP - Notify Revision Needed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Deliver Final Package": {
+      "main": [
+        [
+          {
+            "node": "NoOp - Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP - Notify Revision Needed": {
+      "main": [
+        [
+          {
+            "node": "NoOp - Revision End",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "spark-video"
+    },
+    {
+      "name": "beauty-biz"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2026-05-20T00:00:00.000Z",
+  "versionId": "1"
+}
