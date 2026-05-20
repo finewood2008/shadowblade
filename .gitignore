@@ -69,3 +69,6 @@ final/                     # output files
 work/thumbnails/
 assets/beauty/             # stock video assets (download separately)
 .claude/
+fonts/*.ttc
+fonts/*.ttf
+bgmusic/*.mp3
