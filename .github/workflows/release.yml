@@ -1,0 +1,56 @@
+name: 火花 Release on tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 品牌守门
+        run: |
+          chmod +x scripts/check_brand_residue.sh
+          ./scripts/check_brand_residue.sh
+
+      - name: 安装 electron 依赖
+        working-directory: project/aitoearn-electron
+        run: npm install --no-audit --no-fund
+
+      - name: 打包 macOS dmg/zip
+        working-directory: project/aitoearn-electron
+        run: npm run build:notsc
+
+      - name: dmg smoke test
+        run: |
+          chmod +x scripts/smoke_test.sh
+          ./scripts/smoke_test.sh arm64
+          ./scripts/smoke_test.sh x64
+
+      - name: 准备 release 包
+        run: |
+          chmod +x scripts/prepare_release.sh
+          VERSION="${GITHUB_REF_NAME#v}"
+          ./scripts/prepare_release.sh "$VERSION"
+
+      - name: 创建 GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "${GITHUB_REF_NAME}" \
+            dist/release-v${VERSION}/* \
+            --title "火花 ${GITHUB_REF_NAME}" \
+            --notes-file docs/RELEASE_NOTES.md
