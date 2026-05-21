@@ -33,7 +33,6 @@ from PIL import Image
 
 from services.video.texiao_service import gen_filter
 from tools.file_utils import generate_temp_filename
-from tools.tr_utils import tr
 from tools.utils import random_with_system_time, run_ffmpeg_command, extent_audio
 
 # 获取当前脚本的绝对路径
@@ -308,7 +307,7 @@ class VideoMixService:
                 break
         print("total length:", total_length, "audio length:", audio_duration)
         if total_length < audio_duration:
-            raise RuntimeError(tr("You Need More Resource"))
+            raise RuntimeError("Not enough media to cover audio duration")
         return matching_videos, total_length
 
 

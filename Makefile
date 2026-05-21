@@ -1,6 +1,6 @@
-# 火花 · Huohua · 命令统一入口
+# Shadowblade · 命令统一入口
 
-.PHONY: help install build build-electron build-web smoke check release clean dev dev-stop landing
+.PHONY: help install build build-electron build-web smoke check release clean dev dev-stop landing worker worker-stop install-worker
 
 VERSION ?= 0.8.0
 
@@ -44,3 +44,15 @@ clean:  ## 清理 build 产物
 	rm -rf project/aitoearn-electron/dist-electron
 	rm -rf project/aitoearn-web/.next
 	rm -rf dist/
+	rm -rf app/work/ app/final/
+
+# ---- Worker (Python FastAPI) ----
+
+install-worker:  ## 安装 Worker Python 依赖
+	pip install -r requirements.txt
+
+worker:  ## 启动 Worker (http://0.0.0.0:8000)
+	python -m uvicorn app.worker:app --host 0.0.0.0 --port 8000 --reload
+
+worker-stop:  ## 关掉 Worker 进程
+	@pkill -f "uvicorn app.worker" 2>/dev/null && echo "worker stopped" || echo "no worker running"

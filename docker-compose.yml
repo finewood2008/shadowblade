@@ -295,6 +295,22 @@ services:
       retries: 3
       start_period: 10s
 
+  shadowblade-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shadowblade-worker
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./config/config.yml:/app/config/config.yml:ro
+      - ./assets:/app/assets:ro
+      - worker-work:/app/app/work
+      - worker-final:/app/app/final
+    networks:
+      - aitoearn-network
+
 networks:
   aitoearn-network:
     driver: bridge
@@ -310,4 +326,8 @@ volumes:
   rustfs-data:
     driver: local
   init-data:
+    driver: local
+  worker-work:
+    driver: local
+  worker-final:
     driver: local

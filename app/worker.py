@@ -1,9 +1,8 @@
 """
-Huohua Worker -- FastAPI HTTP Worker for video mixing pipeline
-Based on MoneyPrinterPlus services/
+Shadowblade Worker -- FastAPI HTTP Worker for video mixing pipeline
 
 Usage:
-    cd D:/GITHUB/huohua
+    cd D:/GITHUB/shadowblade
     python -m app.worker
 
     # or with custom port
@@ -14,6 +13,7 @@ import os
 import sys
 import re
 import subprocess
+import logging
 from typing import Optional, List
 
 # ---------------------------------------------------------------------------
@@ -44,6 +44,7 @@ from app.services.llm.llm_provider import get_llm_provider
 from app.services.audio.azure_service import AzureAudioService
 from app.services.audio.alitts_service import AliAudioService
 from app.services.audio.tencent_tts_service import TencentAudioService
+from app.services.audio.edgetts_service import EdgeTTSAudioService
 from app.services.audio.faster_whisper_recognition_service import FasterWhisperRecognitionService
 from app.services.audio.sensevoice_whisper_recognition_service import SenseVoiceRecognitionService
 from app.services.video.video_service import (
@@ -61,14 +62,35 @@ from tools.file_utils import generate_temp_filename
 # ---------------------------------------------------------------------------
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
 
+logger = logging.getLogger("shadowblade")
+
 app = FastAPI(
-    title="Huohua Worker",
-    description="Video mixing worker for beauty-industry short videos (n8n upstream)",
+    title="Shadowblade Worker",
+    description="AI video production worker for local businesses",
     version="0.1.0",
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.on_event("startup")
+def on_startup():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    logger.info("Shadowblade Worker starting up")
+    logger.info(f"WORK_DIR={WORK_DIR}  FINAL_DIR={FINAL_DIR}")
 
 # ========================== SCHEMAS ==========================
 
@@ -257,6 +279,8 @@ def _get_remote_audio_service(provider: str):
         return AliAudioService()
     elif provider == "Tencent":
         return TencentAudioService()
+    elif provider == "EdgeTTS":
+        return EdgeTTSAudioService()
     else:
         raise ValueError(f"Unknown remote TTS provider: {provider}")
 

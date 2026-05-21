@@ -1,0 +1,39 @@
+# Shadowblade Worker - Python dependencies
+# Install: pip install -r requirements.txt
+
+# --- Core ---
+fastapi>=0.111.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+pydantic>=2.0
+
+# --- Config ---
+PyYAML>=6.0
+
+# --- LLM providers ---
+openai>=1.30.0
+langchain>=0.2.0
+langchain-openai>=0.1.0
+langchain-community>=0.2.0
+langchain-core>=0.2.0
+
+# --- TTS ---
+edge-tts>=6.1.0
+azure-cognitiveservices-speech>=1.37.0
+pydub>=0.25.1
+
+# --- ASR ---
+faster-whisper>=1.0.0
+
+# --- Video/Image ---
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# --- HTTP ---
+requests>=2.31.0
+
+# --- Alibaba Cloud (TTS/ASR) ---
+aliyun-python-sdk-core>=2.13.0
+
+# --- Tencent Cloud (TTS/ASR) ---
+tencentcloud-sdk-python>=3.0.0
