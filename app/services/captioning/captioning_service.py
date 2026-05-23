@@ -24,6 +24,7 @@
 import json
 import os
 import platform
+import shlex
 from typing import Optional
 
 from config.config import my_config
@@ -51,6 +52,48 @@ font_dir = os.path.abspath(font_dir)
 if platform.system() == "Windows":
     font_dir = font_dir.replace("\\", "\\\\\\\\")
     font_dir = font_dir.replace(":", "\\\\:")
+
+
+def _ffmpeg_has_filter(filter_name):
+    try:
+        result = subprocess.run(
+            ["ffmpeg", "-hide_banner", "-filters"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except Exception:
+        return False
+    return any(
+        line.split()[1:2] == [filter_name]
+        for line in (result.stdout or "").splitlines()
+    )
+
+
+def _replace_video_file(output_file, video_file):
+    if os.path.exists(output_file):
+        os.remove(video_file)
+        os.renames(output_file, video_file)
+
+
+def _embed_subtitle_track(video_file, subtitle_file, output_file):
+    ffmpeg_cmd = [
+        'ffmpeg',
+        '-i', video_file,
+        '-i', subtitle_file,
+        '-map', '0:v:0',
+        '-map', '0:a?',
+        '-map', '1:0',
+        '-c:v', 'copy',
+        '-c:a', 'copy',
+        '-c:s', 'mov_text',
+        '-metadata:s:s:0', 'language=chi',
+        '-y',
+        output_file,
+    ]
+    print(" ".join(shlex.quote(item) for item in ffmpeg_cmd))
+    subprocess.run(ffmpeg_cmd, check=True)
+    _replace_video_file(output_file, video_file)
 
 
 # 生成字幕
@@ -107,6 +150,11 @@ def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_si
                   outline_colour='#FFFFFF', margin_v=16, margin_l=4, margin_r=4, border_style=1, outline=0, alignment=2,
                   shadow=0, spacing=2):
     output_file = generate_temp_filename(video_file)
+    if not _ffmpeg_has_filter("subtitles"):
+        print("WARNING: ffmpeg subtitles filter is unavailable; embedding MP4 subtitle track instead.")
+        _embed_subtitle_track(video_file, subtitle_file, output_file)
+        return
+
     # 添加透明度通道（AA），默认00表示不透明，并确保颜色值为6位
     # 将HEX颜色转换为BGRA格式（AARRGGBB -> BBGGRRAA）
     def hex_to_bgra(hex_color):
@@ -122,7 +170,7 @@ def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_si
     if platform.system() == "Windows":
         subtitle_file = subtitle_file.replace("\\", "\\\\\\\\")
         subtitle_file = subtitle_file.replace(":", "\\\\:")
-    vf_text = f"subtitles={subtitle_file}:fontsdir={font_dir}:force_style='Fontname={font_name},Fontsize={font_size},Alignment={alignment},MarginV={margin_v},MarginL={margin_l},MarginR={margin_r},BorderStyle={border_style},Outline={outline},Shadow={shadow},PrimaryColour={primary_colour},OutlineColour={outline_colour},Spacing={spacing}'"
+    vf_text = f"subtitles=filename='{subtitle_file}':fontsdir='{font_dir}':force_style='Fontname={font_name},Fontsize={font_size},Alignment={alignment},MarginV={margin_v},MarginL={margin_l},MarginR={margin_r},BorderStyle={border_style},Outline={outline},Shadow={shadow},PrimaryColour={primary_colour},OutlineColour={outline_colour},Spacing={spacing}'"
     # 构建FFmpeg命令
     ffmpeg_cmd = [
         'ffmpeg',
@@ -131,10 +179,8 @@ def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_si
         '-y',
         output_file  # 输出文件
     ]
-    print(" ".join(ffmpeg_cmd))
+    print(" ".join(shlex.quote(item) for item in ffmpeg_cmd))
     # 调用ffmpeg
     subprocess.run(ffmpeg_cmd, check=True)
     # 重命名最终的文件
-    if os.path.exists(output_file):
-        os.remove(video_file)
-        os.renames(output_file, video_file)
+    _replace_video_file(output_file, video_file)

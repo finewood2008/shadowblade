@@ -12,8 +12,12 @@ Usage:
 import os
 import sys
 import re
+import json
+import shutil
+import asyncio
 import subprocess
 import logging
+from pathlib import Path
 from typing import Optional, List
 
 # ---------------------------------------------------------------------------
@@ -32,8 +36,10 @@ if APP_DIR not in sys.path:
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "work")
 FINAL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "final")
+STOCK_DIR = os.path.join(WORK_DIR, "stock")
 os.makedirs(WORK_DIR, exist_ok=True)
 os.makedirs(FINAL_DIR, exist_ok=True)
+os.makedirs(STOCK_DIR, exist_ok=True)
 
 # ---------------------------------------------------------------------------
 # 2. Import project modules
@@ -63,6 +69,7 @@ from tools.file_utils import generate_temp_filename
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import uvicorn
 
@@ -81,6 +88,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/files/work", StaticFiles(directory=WORK_DIR), name="work-files")
+app.mount("/files/final", StaticFiles(directory=FINAL_DIR), name="final-files")
 
 
 @app.on_event("startup")
@@ -208,6 +218,47 @@ class GenerateCoverRequest(BaseModel):
 class GenerateCoverResponse(BaseModel):
     cover_file: str
 
+# --- /stock/* ---
+
+class StockStatusResponse(BaseModel):
+    pexels: dict
+    ytdlp: dict
+
+class StockFromUrlRequest(BaseModel):
+    url: str
+    sections: Optional[str] = "*0:00-0:08"
+    max_height: int = 1080
+
+class StockFromUrlResponse(BaseModel):
+    path: str
+    directory: str
+    title: str = ""
+    duration: Optional[float] = None
+
+class StockSearchRequest(BaseModel):
+    keyword: str
+    count: int = Field(default=3, ge=1, le=8)
+    max_seconds: float = Field(default=6.0, ge=2, le=15)
+
+class StockSearchResponse(BaseModel):
+    keyword: str
+    directory: str
+    paths: List[str]
+    titles: List[str]
+    sources: List[str]
+
+class PexelsAutoRequest(BaseModel):
+    query: str
+    count: int = Field(default=3, ge=1, le=10)
+    orientation: str = "portrait"
+    api_key: Optional[str] = None
+
+class PexelsAutoResponse(BaseModel):
+    query: str
+    directory: str
+    paths: List[str]
+    photographers: List[str]
+
 
 # ========================== HELPER: VideoService Wrapper ==========================
 
@@ -260,6 +311,265 @@ def _build_video_mix_service(vc: VideoConfig):
         video_transition_effect_value=vc.video_transition_effect_value,
     )
     return svc
+
+
+# ========================== HELPER: Stock acquisition ==========================
+
+def _safe_stock_slug(value: str, fallback: str = "clip") -> str:
+    text = re.sub(r"[^A-Za-z0-9._-]+", "-", value.strip())[:64].strip("-._")
+    return text or fallback
+
+
+def _stock_dir(source: str) -> str:
+    folder = os.path.join(STOCK_DIR, _safe_stock_slug(source, "source"))
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+
+def _ytdlp_binary() -> str:
+    venv_candidate = Path(sys.executable).parent / "yt-dlp"
+    if venv_candidate.exists():
+        return str(venv_candidate)
+    binary = shutil.which("yt-dlp")
+    if binary:
+        return binary
+    raise RuntimeError("yt-dlp is not installed. Run `pip install yt-dlp` in the ShadowBlade venv.")
+
+
+def _probe_media(path: str) -> dict:
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration:stream=width,height",
+        "-of",
+        "json",
+        path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
+    if result.returncode != 0:
+        return {}
+    try:
+        return json.loads(result.stdout or "{}")
+    except json.JSONDecodeError:
+        return {}
+
+
+def _trim_video(source: str, target: str, max_seconds: float = 6.0):
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-nostats",
+        "-y",
+        "-i",
+        source,
+        "-t",
+        f"{max_seconds:.2f}",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "ultrafast",
+        "-pix_fmt",
+        "yuv420p",
+        "-c:a",
+        "aac",
+        "-ac",
+        "1",
+        "-ar",
+        "48000",
+        target,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    if result.returncode != 0 or not os.path.exists(target):
+        raise RuntimeError(result.stderr[-500:] or "ffmpeg trim failed")
+
+
+def _run_ytdlp(url: str, out_dir: str, sections: Optional[str], max_height: int, filename_hint: str):
+    binary = _ytdlp_binary()
+    output_template = os.path.join(out_dir, f"{_safe_stock_slug(filename_hint)}.%(ext)s")
+    cmd = [
+        binary,
+        "--no-playlist",
+        "--no-warnings",
+        "--quiet",
+        "--print-json",
+        "-f",
+        f"bv*[height<={max_height}][ext=mp4]+ba[ext=m4a]/b[height<={max_height}][ext=mp4]/b",
+        "--merge-output-format",
+        "mp4",
+        "-o",
+        output_template,
+    ]
+    if sections:
+        cmd += ["--download-sections", sections]
+    cmd.append(url)
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=240)
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr[-700:] or "yt-dlp failed")
+
+    meta = {}
+    for line in (result.stdout or "").splitlines():
+        line = line.strip()
+        if line.startswith("{"):
+            try:
+                meta = json.loads(line)
+                break
+            except json.JSONDecodeError:
+                continue
+
+    candidates = sorted(
+        Path(out_dir).glob(f"{_safe_stock_slug(filename_hint)}.*"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not candidates:
+        raise RuntimeError("yt-dlp ran but produced no output file")
+    produced = str(candidates[0])
+    info = _probe_media(produced)
+    return produced, meta, info
+
+
+def _ytdlp_search_entries(keyword: str, limit: int, max_duration: int = 300) -> List[dict]:
+    binary = _ytdlp_binary()
+    cmd = [
+        binary,
+        "--dump-json",
+        "--flat-playlist",
+        "--no-warnings",
+        "--quiet",
+        "--match-filter",
+        f"duration<{max_duration}",
+        f"ytsearch{max(limit, 1)}:{keyword}",
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+    if result.returncode != 0 and not result.stdout:
+        raise RuntimeError(result.stderr[-500:] or "yt-dlp search failed")
+
+    entries = []
+    for line in (result.stdout or "").splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            meta = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        url = meta.get("webpage_url") or meta.get("url")
+        if not url:
+            continue
+        if meta.get("ie_key") == "Youtube" and not str(url).startswith(("http://", "https://")):
+            url = f"https://www.youtube.com/watch?v={url}"
+        entries.append({
+            "url": str(url),
+            "id": str(meta.get("id") or len(entries)),
+            "title": str(meta.get("title") or "Untitled stock clip"),
+        })
+    return entries
+
+
+def _archive_search(keyword: str, count: int, out_dir: str, max_seconds: float):
+    import requests
+
+    search_url = "https://archive.org/advancedsearch.php"
+    meta_url = "https://archive.org/metadata"
+    params = {
+        "q": f'"{keyword}" mediatype:movies',
+        "fl[]": ["identifier", "title", "downloads"],
+        "sort[]": "downloads desc",
+        "rows": "12",
+        "output": "json",
+    }
+    response = requests.get(search_url, params=params, timeout=15)
+    response.raise_for_status()
+    docs = (response.json().get("response") or {}).get("docs", [])
+    paths = []
+    titles = []
+    for doc in docs:
+        identifier = doc.get("identifier")
+        if not identifier:
+            continue
+        meta = requests.get(f"{meta_url}/{identifier}", timeout=15)
+        if meta.status_code != 200:
+            continue
+        files = meta.json().get("files", [])
+        pick = None
+        for item in sorted(files, key=lambda f: int(f.get("size") or 0)):
+            name = item.get("name", "")
+            size = int(item.get("size") or 0)
+            if name.lower().endswith((".mp4", ".mov", ".m4v")) and 1_000_000 <= size <= 250_000_000:
+                pick = item
+                break
+        if not pick:
+            continue
+        source_url = f"https://archive.org/download/{identifier}/{pick['name']}"
+        raw_path = os.path.join(out_dir, f"archive-{_safe_stock_slug(identifier)}.source.mp4")
+        final_path = os.path.join(out_dir, f"archive-{_safe_stock_slug(identifier)}.mp4")
+        if not os.path.exists(final_path) or os.path.getsize(final_path) < 30_000:
+            with requests.get(source_url, stream=True, timeout=60) as download:
+                if download.status_code != 200:
+                    continue
+                with open(raw_path, "wb") as handle:
+                    for chunk in download.iter_content(chunk_size=64 * 1024):
+                        if chunk:
+                            handle.write(chunk)
+            _trim_video(raw_path, final_path, max_seconds)
+            try:
+                os.remove(raw_path)
+            except OSError:
+                pass
+        paths.append(os.path.abspath(final_path))
+        titles.append(str(doc.get("title") or identifier))
+        if len(paths) >= count:
+            break
+    return paths, titles
+
+
+async def _pexels_auto_download(query: str, count: int, orientation: str, api_key: Optional[str]):
+    import httpx
+
+    key = api_key or os.environ.get("PEXELS_API_KEY") or os.environ.get("SHADOWBLADE_PEXELS_KEY")
+    if not key:
+        raise RuntimeError("PEXELS_API_KEY is not set.")
+    out_dir = _stock_dir("pexels")
+    async with httpx.AsyncClient(timeout=httpx.Timeout(30.0, read=120.0), follow_redirects=True) as client:
+        response = await client.get(
+            "https://api.pexels.com/videos/search",
+            params={"query": query, "per_page": count + 4, "orientation": orientation, "size": "medium"},
+            headers={"Authorization": key},
+        )
+        if response.status_code != 200:
+            raise RuntimeError(f"Pexels search failed: {response.status_code} {response.text[:200]}")
+        videos = response.json().get("videos", [])
+        paths = []
+        photographers = []
+        for video in videos:
+            files = [item for item in video.get("video_files", []) if item.get("file_type") == "video/mp4"]
+            if not files:
+                continue
+            files.sort(key=lambda item: item.get("height") or 0, reverse=True)
+            picked = next((item for item in files if (item.get("height") or 0) <= 1920), files[-1])
+            target = os.path.join(out_dir, f"pexels-{video.get('id')}.source.mp4")
+            final = os.path.join(out_dir, f"pexels-{video.get('id')}.mp4")
+            if not os.path.exists(final) or os.path.getsize(final) < 30_000:
+                async with client.stream("GET", picked.get("link", "")) as download:
+                    if download.status_code != 200:
+                        continue
+                    with open(target, "wb") as handle:
+                        async for chunk in download.aiter_bytes(64 * 1024):
+                            handle.write(chunk)
+                _trim_video(target, final, 6.0)
+                try:
+                    os.remove(target)
+                except OSError:
+                    pass
+            paths.append(os.path.abspath(final))
+            photographers.append((video.get("user") or {}).get("name", ""))
+            if len(paths) >= count:
+                break
+    if not paths:
+        raise RuntimeError("No Pexels clips downloaded.")
+    return out_dir, paths, photographers
 
 
 # ========================== HELPER: Remote TTS Factory ==========================
@@ -840,6 +1150,106 @@ def generate_cover(req: GenerateCoverRequest):
 
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/stock/status", response_model=StockStatusResponse)
+def stock_status():
+    return StockStatusResponse(
+        pexels={
+            "configured": bool(os.environ.get("PEXELS_API_KEY") or os.environ.get("SHADOWBLADE_PEXELS_KEY")),
+            "hint": "Set PEXELS_API_KEY or SHADOWBLADE_PEXELS_KEY for Pexels.",
+        },
+        ytdlp={
+            "configured": shutil.which("yt-dlp") is not None or (Path(sys.executable).parent / "yt-dlp").exists(),
+            "hint": "Install with pip install yt-dlp.",
+        },
+    )
+
+
+@app.post("/stock/from-url", response_model=StockFromUrlResponse)
+def stock_from_url(req: StockFromUrlRequest):
+    try:
+        out_dir = _stock_dir("ytdlp")
+        produced, meta, info = _run_ytdlp(
+            req.url,
+            out_dir,
+            sections=req.sections,
+            max_height=req.max_height,
+            filename_hint=f"url-{random_with_system_time()}",
+        )
+        duration = float((info.get("format") or {}).get("duration") or meta.get("duration") or 0) or None
+        return StockFromUrlResponse(
+            path=os.path.abspath(produced),
+            directory=os.path.abspath(out_dir),
+            title=str(meta.get("title") or Path(produced).stem),
+            duration=duration,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/stock/search", response_model=StockSearchResponse)
+def stock_search(req: StockSearchRequest):
+    try:
+        out_dir = _stock_dir("search")
+        paths = []
+        titles = []
+        sources = []
+        try:
+            entries = _ytdlp_search_entries(req.keyword, req.count + 4)
+            for index, entry in enumerate(entries):
+                if len(paths) >= req.count:
+                    break
+                produced, meta, _info = _run_ytdlp(
+                    entry["url"],
+                    out_dir,
+                    sections=f"*0:00-0:{int(req.max_seconds):02d}",
+                    max_height=720,
+                    filename_hint=f"yt-{_safe_stock_slug(entry['id'], str(index))}-{random_with_system_time()}",
+                )
+                paths.append(os.path.abspath(produced))
+                titles.append(str(meta.get("title") or entry["title"] or Path(produced).stem))
+                sources.append("youtube")
+        except Exception as ytdlp_error:
+            logger.warning(f"yt-dlp keyword search failed, falling back to archive.org: {ytdlp_error}")
+
+        if len(paths) < req.count:
+            archive_paths, archive_titles = _archive_search(req.keyword, req.count - len(paths), out_dir, req.max_seconds)
+            paths.extend(archive_paths)
+            titles.extend(archive_titles)
+            sources.extend(["archive"] * len(archive_paths))
+
+        if not paths:
+            raise RuntimeError(f"No stock footage found for keyword: {req.keyword}")
+
+        return StockSearchResponse(
+            keyword=req.keyword,
+            directory=os.path.abspath(out_dir),
+            paths=paths,
+            titles=titles,
+            sources=sources,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/stock/pexels/auto", response_model=PexelsAutoResponse)
+async def stock_pexels_auto(req: PexelsAutoRequest):
+    try:
+        directory, paths, photographers = await _pexels_auto_download(
+            req.query,
+            req.count,
+            req.orientation,
+            req.api_key,
+        )
+        return PexelsAutoResponse(
+            query=req.query,
+            directory=os.path.abspath(directory),
+            paths=paths,
+            photographers=photographers,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

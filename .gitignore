@@ -57,17 +57,23 @@ venv/
 .venv/
 
 # Huohua / Shadowblade specific
-config/config.yml          # contains API keys - DO NOT COMMIT
-app/work/                  # temp working files
-app/final/                 # generated videos
-work/                      # temp files
-final/                     # output files
-*.mp4                      # video files (too large for git)
-*.wav                      # audio files
-*.mp3                      # audio files
-*.srt                      # subtitle files
+# contains API keys - DO NOT COMMIT
+config/config.yml
+config/*.bak
+# temp working files
+app/work/
+work/
+# generated videos / output files
+app/final/
+final/
+# media files are too large for git
+*.mp4
+*.wav
+*.mp3
+*.srt
 work/thumbnails/
-assets/beauty/             # stock video assets (download separately)
+# stock video assets (download separately)
+assets/beauty/
 .claude/
 fonts/*.ttc
 fonts/*.ttf
