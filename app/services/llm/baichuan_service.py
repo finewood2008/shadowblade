@@ -23,7 +23,7 @@
 
 import os
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_community.llms.baichuan import BaichuanLLM
 
 from config.config import my_config

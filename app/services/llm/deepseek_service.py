@@ -21,7 +21,7 @@
 #
 #
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from openai import OpenAI
 
 from config.config import my_config

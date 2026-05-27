@@ -60,6 +60,7 @@ from app.services.video.video_service import (
 from app.services.video.texiao_service import gen_filter
 from app.services.captioning.captioning_service import add_subtitles
 from app.services.hunjian.hunjian_service import concat_audio_list
+from app.services.stock.stock_service import fetch_stock_footage, StockProviderError
 from tools.utils import random_with_system_time, run_ffmpeg_command, extent_audio
 from tools.file_utils import generate_temp_filename
 
@@ -69,6 +70,7 @@ from tools.file_utils import generate_temp_filename
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 import uvicorn
@@ -92,6 +94,49 @@ app.add_middleware(
 app.mount("/files/work", StaticFiles(directory=WORK_DIR), name="work-files")
 app.mount("/files/final", StaticFiles(directory=FINAL_DIR), name="final-files")
 
+# ---------------------------------------------------------------------------
+# Front-end: 影刀短视频工作台 (static SPA under app/web/)
+# ---------------------------------------------------------------------------
+
+WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
+if os.path.isdir(WEB_DIR):
+    app.mount("/web", StaticFiles(directory=WEB_DIR, html=True), name="web")
+
+    @app.get("/", include_in_schema=False)
+    def _root():
+        return RedirectResponse(url="/web/")
+
+
+# ---------------------------------------------------------------------------
+# /file?path=...   safe read-only file serving for produced artifacts
+# only paths inside WORK_DIR or FINAL_DIR are allowed
+# ---------------------------------------------------------------------------
+
+from fastapi.responses import FileResponse
+
+_ALLOWED_FILE_ROOTS = (
+    os.path.realpath(WORK_DIR),
+    os.path.realpath(FINAL_DIR),
+)
+
+@app.get("/file", include_in_schema=False)
+def serve_artifact(path: str):
+    """Serve a produced artifact (audio / video / srt / cover) by absolute path,
+    restricted to WORK_DIR / FINAL_DIR."""
+    try:
+        resolved = os.path.realpath(path)
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid path")
+
+    if not any(resolved.startswith(root + os.sep) or resolved == root
+               for root in _ALLOWED_FILE_ROOTS):
+        raise HTTPException(status_code=403, detail="path not allowed")
+
+    if not os.path.isfile(resolved):
+        raise HTTPException(status_code=404, detail="file not found")
+
+    return FileResponse(resolved)
+
 
 @app.on_event("startup")
 def on_startup():
@@ -111,6 +156,10 @@ class GenerateScriptRequest(BaseModel):
     language: str = "zh-CN"
     length: str = "500"
     llm_provider: Optional[str] = None  # override config.yml
+    # 如果填了下面 3 个，会临时盖掉 config.yml 里对应 provider 的配置
+    llm_api_key: Optional[str] = None
+    llm_base_url: Optional[str] = None
+    llm_model_name: Optional[str] = None
 
 class GenerateScriptResponse(BaseModel):
     content: str
@@ -780,18 +829,40 @@ def generate_script(req: GenerateScriptRequest):
     Reuses:
       - services/llm/llm_provider.py :: get_llm_provider()
       - services/llm/*_service.py :: generate_content()
+
+    If req.llm_api_key / llm_base_url / llm_model_name are provided, they
+    temporarily override config.yml -> llm.{provider}.* for this call only.
     """
     try:
         provider_name = req.llm_provider or my_config['llm']['provider']
-        llm_service = get_llm_provider(provider_name)
 
-        # Generate main content
-        content = llm_service.generate_content(
-            req.topic,
-            llm_service.topic_prompt_template,
-            req.language,
-            req.length,
-        )
+        # Temporarily inject overrides into my_config so that the LLM service
+        # constructor (which reads my_config['llm'][provider]['api_key'] etc.)
+        # picks them up. Restore after the call.
+        llm_cfg = my_config.setdefault('llm', {})
+        prov_cfg = llm_cfg.setdefault(provider_name, {})
+        backup = {k: prov_cfg.get(k) for k in ("api_key", "base_url", "model_name")}
+        try:
+            if req.llm_api_key:    prov_cfg["api_key"] = req.llm_api_key
+            if req.llm_base_url:   prov_cfg["base_url"] = req.llm_base_url
+            if req.llm_model_name: prov_cfg["model_name"] = req.llm_model_name
+
+            llm_service = get_llm_provider(provider_name)
+
+            # Generate main content
+            content = llm_service.generate_content(
+                req.topic,
+                llm_service.topic_prompt_template,
+                req.language,
+                req.length,
+            )
+        finally:
+            # restore original values whether we succeed or fail
+            for k, v in backup.items():
+                if v is None:
+                    prov_cfg.pop(k, None)
+                else:
+                    prov_cfg[k] = v
 
         # Clean up LLM output: strip markdown formatting, headers, etc.
         import re as _re
@@ -800,7 +871,7 @@ def generate_script(req: GenerateScriptRequest):
         clean = _re.sub(r'\*{1,3}(.*?)\*{1,3}', r'\1', clean) # remove **bold** / *italic*
         clean = _re.sub(r'[-–—]\s*', '', clean)                 # remove list bullets
         clean = _re.sub(r'\n{2,}', '\n', clean)                 # collapse blank lines
-        clean = _re.sub(r'[（(].*?字.*?[）)]', '', clean)       # remove "(约XXX字)" notes
+        clean = _re.sub(r'[(（].*?字.*?[)）]', '', clean)       # remove "(约XXX字)" notes
         clean = clean.strip()
         content = clean
 
@@ -1250,6 +1321,104 @@ async def stock_pexels_auto(req: PexelsAutoRequest):
             paths=paths,
             photographers=photographers,
         )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========================== /smart-pad ==========================
+
+class SmartPadRequest(BaseModel):
+    keywords: List[str] = Field(default_factory=list)
+    target_seconds: float = 60.0
+    existing_dirs: List[str] = Field(default_factory=list)
+    provider: str = "pexels"        # pexels | pixabay
+    orientation: str = "portrait"   # pexels only
+    api_key: Optional[str] = None   # override config.yml if set
+
+
+class SmartPadResponse(BaseModel):
+    needed: bool
+    existing_seconds: float
+    target_seconds: float
+    stock_dir: Optional[str] = None
+    downloaded: int = 0
+    downloaded_seconds: float = 0
+    files: List[str] = Field(default_factory=list)
+    skipped_reasons: List[str] = Field(default_factory=list)
+
+
+def _measure_dir_seconds(d: str) -> float:
+    """Sum video duration in a directory; images count as 5s placeholder."""
+    if not os.path.isdir(d):
+        return 0.0
+    total = 0.0
+    for fn in os.listdir(d):
+        path = os.path.join(d, fn)
+        low = fn.lower()
+        if low.endswith((".mp4", ".mov", ".mkv", ".webm")):
+            total += get_video_duration(path) or 0.0
+        elif low.endswith((".jpg", ".jpeg", ".png")):
+            total += 5.0
+    return total
+
+
+@app.post("/smart-pad", response_model=SmartPadResponse)
+def smart_pad(req: SmartPadRequest):
+    """
+    If existing_dirs total footage < target_seconds, search & download
+    stock footage to a fresh dir under WORK_DIR/stock-<ts>/ until quota met.
+    """
+    try:
+        existing_seconds = sum(_measure_dir_seconds(d) for d in req.existing_dirs)
+        gap = req.target_seconds - existing_seconds
+
+        if gap <= 0:
+            return SmartPadResponse(
+                needed=False,
+                existing_seconds=existing_seconds,
+                target_seconds=req.target_seconds,
+            )
+
+        # resolve api key
+        api_key = req.api_key
+        if not api_key:
+            cfg = my_config.get("resource", {}) or {}
+            prov_cfg = cfg.get(req.provider, {}) or {}
+            api_key = prov_cfg.get("api_key")
+            if api_key in (None, "", "API_KEY"):
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"resource.{req.provider}.api_key is not set in config.yml. "
+                           f"Get one free at https://www.{req.provider}.com/api/",
+                )
+
+        out_dir = os.path.join(WORK_DIR, f"stock-{random_with_system_time()}")
+
+        try:
+            result = fetch_stock_footage(
+                keywords=req.keywords,
+                target_seconds=gap * 1.2,  # over-fetch 20%
+                out_dir=out_dir,
+                provider=req.provider,
+                api_key=api_key,
+                orientation=req.orientation,
+            )
+        except StockProviderError as e:
+            raise HTTPException(status_code=502, detail=str(e))
+
+        return SmartPadResponse(
+            needed=True,
+            existing_seconds=existing_seconds,
+            target_seconds=req.target_seconds,
+            stock_dir=os.path.abspath(out_dir),
+            downloaded=result["downloaded"],
+            downloaded_seconds=result["total_duration"],
+            files=result["files"],
+            skipped_reasons=result["skipped_reasons"],
+        )
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

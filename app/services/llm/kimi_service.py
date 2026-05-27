@@ -23,7 +23,7 @@
 
 import os
 
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_community.llms.moonshot import Moonshot
 
 from config.config import my_config
