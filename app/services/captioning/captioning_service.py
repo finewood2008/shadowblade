@@ -45,11 +45,37 @@ script_path = os.path.abspath(__file__)
 # 脚本所在的目录
 script_dir = os.path.dirname(script_path)
 
-font_dir = os.path.join(script_dir, '../../fonts')
-font_dir = os.path.abspath(font_dir)
+
+def _resolve_font_dir():
+    """
+    依次向上查找一个真实存在的 fonts/ 目录：
+      1. app/services/captioning/../fonts        （旧 fork 习惯）
+      2. app/services/captioning/../../fonts     （app/ 同级）
+      3. app/services/captioning/../../../fonts  （仓库根，shadowblade 仓库的位置）
+
+    全找不到就返回 None，调用方应当不传 fontsdir，让 libass 走系统字体回退
+    （Windows 上 'Microsoft YaHei' 通常都装着）。
+    """
+    candidates = [
+        os.path.normpath(os.path.join(script_dir, p))
+        for p in ("../fonts", "../../fonts", "../../../fonts")
+    ]
+    for cand in candidates:
+        if os.path.isdir(cand):
+            try:
+                if any(f.lower().endswith((".ttc", ".ttf", ".otf"))
+                       for f in os.listdir(cand)):
+                    return cand
+            except OSError:
+                pass
+    return None
+
+
+_resolved_font_dir = _resolve_font_dir()
+font_dir = _resolved_font_dir or ""
 
 # windows路径需要特殊处理
-if platform.system() == "Windows":
+if font_dir and platform.system() == "Windows":
     font_dir = font_dir.replace("\\", "\\\\\\\\")
     font_dir = font_dir.replace(":", "\\\\:")
 
@@ -149,6 +175,20 @@ def generate_caption(recognition_type="local", audio_output_file=None,
 def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_size=12, primary_colour='#FFFFFF',
                   outline_colour='#FFFFFF', margin_v=16, margin_l=4, margin_r=4, border_style=1, outline=0, alignment=2,
                   shadow=0, spacing=2):
+    # 防御性检查：SRT 不存在 / 是空文件 / 只有空白 → 不烧字幕，原视频不变
+    if not subtitle_file or not os.path.isfile(subtitle_file):
+        print(f"WARNING: add_subtitles: SRT not found at {subtitle_file}, skipping")
+        return
+    try:
+        with open(subtitle_file, 'r', encoding='utf-8') as _sf:
+            srt_text = _sf.read().strip()
+        if not srt_text:
+            print(f"WARNING: add_subtitles: SRT is empty at {subtitle_file}, skipping")
+            return
+    except Exception as e:
+        print(f"WARNING: add_subtitles: cannot read SRT {subtitle_file}: {e}, skipping")
+        return
+
     output_file = generate_temp_filename(video_file)
     if not _ffmpeg_has_filter("subtitles"):
         print("WARNING: ffmpeg subtitles filter is unavailable; embedding MP4 subtitle track instead.")
@@ -163,14 +203,25 @@ def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_si
         rgb = hex_color[:6].ljust(6, '0')
         bgr = rgb[4:6] + rgb[2:4] + rgb[0:2]  # RRGGBB -> BBGGRR
         return f"&H{alpha}{bgr}&"
-    
+
     primary_colour = hex_to_bgra(primary_colour)
     outline_colour = hex_to_bgra(outline_colour)
     # windows路径需要特殊处理
+    sub_path = subtitle_file
     if platform.system() == "Windows":
-        subtitle_file = subtitle_file.replace("\\", "\\\\\\\\")
-        subtitle_file = subtitle_file.replace(":", "\\\\:")
-    vf_text = f"subtitles=filename='{subtitle_file}':fontsdir='{font_dir}':force_style='Fontname={font_name},Fontsize={font_size},Alignment={alignment},MarginV={margin_v},MarginL={margin_l},MarginR={margin_r},BorderStyle={border_style},Outline={outline},Shadow={shadow},PrimaryColour={primary_colour},OutlineColour={outline_colour},Spacing={spacing}'"
+        sub_path = sub_path.replace("\\", "\\\\\\\\")
+        sub_path = sub_path.replace(":", "\\\\:")
+
+    # fontsdir 只在仓库里真的能找到 fonts/ 时才传；否则 libass 走系统字体回退
+    fontsdir_clause = f":fontsdir='{font_dir}'" if font_dir else ""
+    vf_text = (
+        f"subtitles=filename='{sub_path}'{fontsdir_clause}"
+        f":force_style='Fontname={font_name},Fontsize={font_size},"
+        f"Alignment={alignment},MarginV={margin_v},MarginL={margin_l},"
+        f"MarginR={margin_r},BorderStyle={border_style},Outline={outline},"
+        f"Shadow={shadow},PrimaryColour={primary_colour},"
+        f"OutlineColour={outline_colour},Spacing={spacing}'"
+    )
     # 构建FFmpeg命令
     ffmpeg_cmd = [
         'ffmpeg',
@@ -180,7 +231,15 @@ def add_subtitles(video_file, subtitle_file, font_name='Songti TC Bold', font_si
         output_file  # 输出文件
     ]
     print(" ".join(shlex.quote(item) for item in ffmpeg_cmd))
-    # 调用ffmpeg
-    subprocess.run(ffmpeg_cmd, check=True)
+    # 调用ffmpeg；失败时把 stderr 一起抛出来，方便上层定位
+    result = subprocess.run(ffmpeg_cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        tail = (result.stderr or "")[-2000:]
+        raise RuntimeError(
+            f"ffmpeg subtitles burn-in failed (rc={result.returncode}). "
+            f"stderr tail:\n{tail}"
+        )
+    if not os.path.exists(output_file) or os.path.getsize(output_file) == 0:
+        raise RuntimeError("ffmpeg subtitles burn-in produced no output file")
     # 重命名最终的文件
     _replace_video_file(output_file, video_file)

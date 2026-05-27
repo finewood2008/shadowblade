@@ -214,6 +214,7 @@ class GenerateSubtitleRequest(BaseModel):
 
 class GenerateSubtitleResponse(BaseModel):
     subtitle_file: str
+    line_count: int = 0
 
 # --- /mix-video ---
 
@@ -988,6 +989,7 @@ def generate_subtitle(req: GenerateSubtitleRequest):
             return start, end
 
         with open(output_file, 'w', encoding='utf-8') as f:
+            line_count = 0
             for idx, r in enumerate(results, 1):
                 start, end = _get_time(
                     r,
@@ -997,13 +999,30 @@ def generate_subtitle(req: GenerateSubtitleRequest):
                 text_val = getattr(r, 'text', '') or getattr(r, 'result', '') or ''
                 text_val = text_val.strip()
                 if text_val:
-                    f.write(f"{idx}\n")
+                    line_count += 1
+                    f.write(f"{line_count}\n")
                     f.write(f"{_format_srt_time(start)} --> {_format_srt_time(end)}\n")
                     f.write(f"{text_val}\n\n")
 
-        print(f"SRT written: {output_file} ({len(results)} segments)")
+        print(f"SRT written: {output_file} ({len(results)} segments, {line_count} non-empty lines)")
 
-        return GenerateSubtitleResponse(subtitle_file=os.path.abspath(output_file))
+        # 显式抛错而不是默默返回空 SRT —— 上游 add_subtitles 会跳过，导致最终视频"看起来正常但没字幕"
+        if line_count == 0:
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "ASR 没有识别出任何字幕内容。常见原因："
+                    "（1）音频质量过低 / 全静音；"
+                    f"（2）language='{req.language}' 与音频实际语言不匹配；"
+                    "（3）ASR 模型未正确加载。"
+                    f"原始 ASR 返回 {len(results)} 段，但全部 text 为空。"
+                ),
+            )
+
+        return GenerateSubtitleResponse(
+            subtitle_file=os.path.abspath(output_file),
+            line_count=line_count,
+        )
 
     except HTTPException:
         raise

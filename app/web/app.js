@@ -14,6 +14,7 @@ const state = {
   // 产物
   script: "",
   script_keywords: [],
+  script_subtitle_count: null,
   audio_file: "",
   audio_duration: null,
   subtitle_file: "",
@@ -130,6 +131,7 @@ function resetPipeline() {
   }
   state.script = "";
   state.script_keywords = [];
+  state.script_subtitle_count = null;
   state.audio_file = "";
   state.audio_duration = null;
   state.subtitle_file = "";
@@ -147,11 +149,50 @@ function resetPipeline() {
 }
 
 // ---------- 产物渲染 ----------
+function escapeHtml(s) {
+  if (!s) return "";
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function renderArtifacts() {
   const wrap = $("artifacts");
   wrap.innerHTML = "";
 
   const cards = [];
+
+  // —— 脚本（stage 1 产物） ——
+  if (state.script) {
+    const kws = (state.script_keywords || [])
+      .slice(0, 8)
+      .map((k) => `<span class="kw-chip">${escapeHtml(k)}</span>`)
+      .join("");
+    cards.push(`
+      <div class="artifact-card">
+        <div class="head-row">
+          <span class="name">脚本文案</span>
+          <span class="name-en">SCRIPT · TXT</span>
+        </div>
+        <div class="script-meta">
+          <span>${state.script.length} 字</span>
+          ${state.script_subtitle_count != null ? `<span>字幕 ${state.script_subtitle_count} 条</span>` : ""}
+        </div>
+        ${kws ? `<div class="script-meta">${kws}</div>` : ""}
+        <div class="script-body">${escapeHtml(state.script)}</div>
+      </div>
+    `);
+  } else {
+    cards.push(`
+      <div class="artifact-card empty">
+        脚本还没生成<br/>
+        <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;">SCRIPT · WAITING</span>
+      </div>
+    `);
+  }
 
   if (state.video_file) {
     const url = `/file?path=${encodeURIComponent(state.video_file)}`;
@@ -296,6 +337,8 @@ async function stage1Script(inp) {
   setStage(1, "done", {
     meta: `${state.script.length} 字${kwPreview ? " · kw=" + kwPreview : ""}`,
   });
+  // 脚本一出来就在产物区展示，方便用户即刻校对
+  renderArtifacts();
 }
 
 async function stage2Audio(inp) {
@@ -319,6 +362,8 @@ async function stage2Audio(inp) {
 async function stage3Subs(inp) {
   if (!inp.enableSubs) {
     setStage(3, "skipped", { meta: "已跳过（用户关闭）" });
+    state.script_subtitle_count = null;
+    renderArtifacts();
     return;
   }
   setStage(3, "running");
@@ -330,7 +375,11 @@ async function stage3Subs(inp) {
   };
   const j = await postJSON("/generate-subtitle", body);
   state.subtitle_file = j.subtitle_file;
-  setStage(3, "done", { meta: basename(j.subtitle_file) });
+  state.script_subtitle_count = (j.line_count != null) ? j.line_count : null;
+  const lineSuffix = (j.line_count != null) ? ` · ${j.line_count} 条` : "";
+  setStage(3, "done", { meta: `${basename(j.subtitle_file)}${lineSuffix}` });
+  // 字幕条数回填到脚本卡片
+  renderArtifacts();
 }
 
 async function stage4Pad(inp) {
