@@ -75,6 +75,39 @@ a { color: var(--text); text-decoration: none; }
   gap: 24px;
 }
 
+/* —— 顶部分段导航（锚点跳转） —— */
+.topbar-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+
+.topbar-nav-item {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  padding: 8px 14px;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.topbar-nav-item:hover {
+  background: rgba(244, 241, 236, 0.04);
+  color: var(--text);
+}
+
+.topbar-nav-item.active {
+  color: var(--accent);
+  background: rgba(232, 106, 44, 0.10);
+}
+
+@media (max-width: 900px) {
+  .topbar-nav { display: none; }
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -1313,4 +1346,199 @@ a { color: var(--text); text-decoration: none; }
 .scene-recent:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+/* ============================================================
+   v2 排版：三段式 section-block + accordion
+   ============================================================ */
+
+/* —— section block 外层（取代旧的 .hero + .section） —— */
+.section-block {
+  padding: 56px 0 24px;
+  border-bottom: 1px dashed var(--border);
+  scroll-margin-top: 84px;  /* 顶部 sticky 导航的预留高度 */
+}
+
+.section-block:last-of-type {
+  border-bottom: none;
+  padding-bottom: 80px;
+}
+
+/* —— section head：编号 + 大标题 + 副标题 + 引导文案 —— */
+.section-block .section-head {
+  margin-bottom: 28px;
+}
+
+.section-head-row {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.section-num {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  background: rgba(232, 106, 44, 0.08);
+  border: 1px solid rgba(232, 106, 44, 0.3);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.section-sub {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.section-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-2);
+  max-width: 680px;
+}
+
+.section-lead .accent { color: var(--accent); }
+
+@media (max-width: 700px) {
+  .section-block { padding: 36px 0 16px; }
+  .section-title { font-size: 22px; }
+}
+
+/* —— accordion：折叠卡片 —— */
+.accordion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.accordion {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+
+.accordion[open] {
+  border-color: var(--border-hi);
+}
+
+.accordion-head {
+  list-style: none;
+  cursor: pointer;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.accordion-head:hover {
+  background: var(--bg-card-hi);
+}
+
+/* 去掉 details 默认三角 */
+.accordion-head::-webkit-details-marker { display: none; }
+.accordion-head::marker { display: none; }
+
+.accordion-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.accordion-title .zh {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.accordion-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+
+.accordion-toggle {
+  font-size: 14px;
+  color: var(--text-3);
+  transition: transform 0.18s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.accordion[open] .accordion-toggle {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+.accordion-body {
+  padding: 6px 22px 22px;
+  border-top: 1px solid var(--border);
+}
+
+/* accordion 内部第一个 .field 紧挨着分隔线 */
+.accordion-body > .hint:first-child,
+.accordion-body > p:first-child {
+  margin-top: 16px;
+}
+
+/* —— section 内的 cta-bar 调整 —— */
+.section-block .cta-bar {
+  margin-top: 16px;
+  padding: 20px 24px;
+}
+
+/* —— 流水线 v2 双栏：左 6 行进度 + 右产物 —— */
+.pipeline-grid-v2 {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .pipeline-grid-v2 {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.pipeline-col {
+  position: sticky;
+  top: 84px;
+}
+
+@media (max-width: 1100px) {
+  .pipeline-col { position: static; }
+}
+
+.artifacts-col .artifacts {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }

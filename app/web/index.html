@@ -19,6 +19,11 @@
         <span class="en">Shadowblade Worker · v0.1</span>
       </div>
     </div>
+    <nav class="topbar-nav">
+      <a href="#s1" class="topbar-nav-item">基础参数</a>
+      <a href="#s2" class="topbar-nav-item">高级设置</a>
+      <a href="#s3" class="topbar-nav-item">流水线 · 产物</a>
+    </nav>
     <div class="health-pill" id="healthPill">
       <span class="dot"></span>
       <span class="lbl mono" id="healthLbl">connecting…</span>
@@ -28,21 +33,23 @@
 
 <main class="shell">
 
-  <!-- ============== Hero ============== -->
-  <section class="hero">
-    <span class="eyebrow">AUTOMATED VIDEO PIPELINE</span>
-    <h1>填一次参数<br/>视频自己生产出来</h1>
-    <p class="subtitle">One Input → Five Stages → A Publish-Ready Video</p>
-    <p class="lead">
-      <span class="accent">脚本、配音、字幕、混剪、封面</span> 五步在本地设备上自动串行。
-      你只需要给主题、素材目录和音色，剩下的全由 Worker 跑完。每一步的产物会自动喂给下一步，失败可单独重试。
-    </p>
-  </section>
+  <!-- ============================================================
+       SECTION 1 · 基础参数
+       ============================================================ -->
+  <section class="section-block" id="s1">
+    <div class="section-head">
+      <div class="section-head-row">
+        <span class="section-num mono">01</span>
+        <h2 class="section-title">填一次参数</h2>
+        <span class="section-sub">Step 1 · Basics</span>
+      </div>
+      <p class="section-lead">
+        告诉 Worker：拍什么主题、用什么素材。脚本/配音/字幕/混剪/封面五步会自动串行。
+        <span class="accent">不知道填什么？</span>下面有 AI 向导帮你问。
+      </p>
+    </div>
 
-  <!-- ============== 主区：参数 + 流水线 ============== -->
-  <section class="section">
-
-    <!-- ============== AI 智能向导（可折叠） ============== -->
+    <!-- AI 智能向导（可折叠） -->
     <div class="card wizard-card" id="wizardCard">
       <div class="wizard-head">
         <div class="wizard-title">
@@ -61,9 +68,7 @@
           <span class="wizard-progress mono" id="wizardProgress">0 / 6</span>
         </div>
 
-        <div class="chat-stream" id="chatStream">
-          <!-- 消息气泡在 app.js 里动态注入 -->
-        </div>
+        <div class="chat-stream" id="chatStream"></div>
 
         <div class="chat-input-row" id="chatInputRow">
           <input
@@ -84,71 +89,109 @@
       </div>
     </div>
 
-    <!-- 主 CTA -->
+    <!-- 内容 -->
+    <div class="card emphasis">
+      <div class="panel-head" style="margin-bottom:8px;">
+        <h3 style="font-size:14px;color:var(--text-2);">内容 · Content</h3>
+      </div>
+      <div class="field">
+        <label><span class="zh">主题</span>TOPIC</label>
+        <input id="f-topic" type="text" placeholder="例：上海徐汇区美甲店秋季新款">
+      </div>
+      <div class="row">
+        <div class="field">
+          <label><span class="zh">脚本结构</span>SCRIPT TEMPLATE</label>
+          <select id="f-template">
+            <option value="general" selected>通用解说 · 不确定就选这个</option>
+            <option value="promo">产品种草 · 强调卖点 + 适合人群</option>
+            <option value="testimonial">客户证言 · 第一人称真实体验</option>
+            <option value="promotion">限时促销 · 价格 + 截止日期</option>
+            <option value="tutorial">知识科普 · 讲一个误区或干货</option>
+            <option value="event">活动预告 · 活动名 + 时间 + 报名</option>
+          </select>
+        </div>
+        <div class="field">
+          <label><span class="zh">字数</span>LENGTH</label>
+          <input id="f-length" type="text" value="500">
+        </div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label><span class="zh">语言</span>LANGUAGE</label>
+          <select id="f-lang">
+            <option value="zh-CN" selected>简体中文</option>
+            <option value="en-US">English</option>
+          </select>
+        </div>
+        <div class="field">
+          <label><span class="zh">片头水印文字</span>INTRO TEXT</label>
+          <input id="f-intro" type="text" placeholder="例：徐汇美甲店">
+        </div>
+      </div>
+    </div>
+
+    <!-- 素材 -->
+    <div class="card emphasis">
+      <div class="panel-head" style="margin-bottom:8px;">
+        <h3 style="font-size:14px;color:var(--text-2);">素材 · Footage</h3>
+      </div>
+      <div class="field">
+        <label><span class="zh">场景目录（每行一个绝对路径，可留空）</span>SCENE DIRS</label>
+        <textarea id="f-scenes" placeholder="D:\GITHUB\shadowblade\assets\beauty\scene-1&#10;D:\GITHUB\shadowblade\assets\beauty\scene-2"></textarea>
+        <div class="scene-tools">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnSceneAdd" title="粘贴一个绝对路径加进来">+ 添加目录</button>
+          <select id="f-scene-recent" class="scene-recent" title="从最近用过的目录里挑">
+            <option value="">最近用过…</option>
+          </select>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnSceneClear" title="清空 textarea">清空</button>
+        </div>
+        <span class="hint">每个目录下放 .mp4 / .mov / .jpg / .png。留空则完全依赖网络素材补量。<br/>
+          <span style="color:var(--text-3);">目录名最后一段会作为「场景名」用来匹配脚本分镜，建议用英文连字符（如 <code class="mono" style="color:var(--accent);font-size:11px;">store-front</code>），中文也支持。</span>
+        </span>
+        <div id="scene-suggestions" class="scene-suggestions" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- 大 CTA -->
     <div class="cta-bar">
       <div class="cta-msg">
-        <strong>一键开跑</strong> · 按下后流水线串行执行 5 个阶段，预计 1–4 分钟（取决于素材时长）。
+        <strong>一键开跑</strong> · 按下后流水线串行执行 6 个阶段，预计 1–4 分钟。
         过程中可以随时停掉浏览器，已完成的产物保留在 <code class="mono" style="color:var(--accent);font-size:12px;">app/final/</code>。
       </div>
       <div class="timer mono" id="totalTimer">00:00</div>
       <button class="btn btn-primary btn-xl" id="btnRun">开始生产 →</button>
       <button class="btn btn-ghost" id="btnReset" style="display:none;">重置</button>
     </div>
+  </section>
 
-    <div class="pipeline-grid" style="margin-top:32px;">
 
-      <!-- ============== 左：参数面板 ============== -->
-      <div>
-        <div class="panel-head">
-          <h3>参数</h3>
-          <span class="en-sub-sm">Inputs</span>
-        </div>
+  <!-- ============================================================
+       SECTION 2 · 高级设置（accordion）
+       ============================================================ -->
+  <section class="section-block" id="s2">
+    <div class="section-head">
+      <div class="section-head-row">
+        <span class="section-num mono">02</span>
+        <h2 class="section-title">高级设置</h2>
+        <span class="section-sub">Step 2 · Advanced (Optional)</span>
+      </div>
+      <p class="section-lead">
+        引擎、API Key、智能补量、流水线开关。不改也能跑，默认配置即可生产。
+      </p>
+    </div>
 
-        <!-- 内容 -->
-        <div class="card emphasis" style="margin-bottom:20px;">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">内容 · Content</h3>
-          </div>
-          <div class="field">
-            <label><span class="zh">主题</span>TOPIC</label>
-            <input id="f-topic" type="text" placeholder="例：上海徐汇区美甲店秋季新款">
-          </div>
-          <div class="row">
-            <div class="field">
-              <label><span class="zh">字数</span>LENGTH</label>
-              <input id="f-length" type="text" value="500">
-            </div>
-            <div class="field">
-              <label><span class="zh">语言</span>LANGUAGE</label>
-              <select id="f-lang">
-                <option value="zh-CN" selected>简体中文</option>
-                <option value="en-US">English</option>
-              </select>
-            </div>
-          </div>
-          <div class="field">
-            <label><span class="zh">片头水印文字</span>INTRO TEXT</label>
-            <input id="f-intro" type="text" placeholder="例：徐汇美甲店">
-          </div>
-          <div class="field">
-            <label><span class="zh">脚本结构</span>SCRIPT TEMPLATE</label>
-            <select id="f-template">
-              <option value="general" selected>通用解说 · 不确定就选这个</option>
-              <option value="promo">产品种草 · 强调卖点 + 适合人群</option>
-              <option value="testimonial">客户证言 · 第一人称真实体验</option>
-              <option value="promotion">限时促销 · 价格 + 截止日期</option>
-              <option value="tutorial">知识科普 · 讲一个误区或干货</option>
-              <option value="event">活动预告 · 活动名 + 时间 + 报名</option>
-            </select>
-            <span class="hint">影响脚本生成阶段的提示词；AI 向导会自动帮你选。</span>
-          </div>
-        </div>
+    <div class="accordion-list">
 
-        <!-- 引擎 -->
-        <div class="card emphasis" style="margin-bottom:20px;">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">引擎 · Engines</h3>
-          </div>
+      <!-- accordion: 引擎 -->
+      <details class="accordion" data-accordion="engines">
+        <summary class="accordion-head">
+          <span class="accordion-title">
+            <span class="zh">引擎 · LLM / TTS / ASR + 音色</span>
+            <span class="accordion-sub">脚本用哪个 LLM、配音用谁、字幕怎么识别</span>
+          </span>
+          <span class="accordion-toggle">▾</span>
+        </summary>
+        <div class="accordion-body">
           <div class="row">
             <div class="field">
               <label><span class="zh">LLM 提供方</span>LLM</label>
@@ -190,12 +233,18 @@
             </select>
           </div>
         </div>
+      </details>
 
-        <!-- LLM 设置 -->
-        <div class="card emphasis" style="margin-bottom:20px;">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">LLM 设置 · Provider Credentials</h3>
-          </div>
+      <!-- accordion: LLM 凭据 -->
+      <details class="accordion" data-accordion="llm-cred">
+        <summary class="accordion-head">
+          <span class="accordion-title">
+            <span class="zh">LLM 凭据 · API Key / Base URL / Model</span>
+            <span class="accordion-sub">填了即覆盖 config.yml，按 LLM 提供方自动切换</span>
+          </span>
+          <span class="accordion-toggle">▾</span>
+        </summary>
+        <div class="accordion-body">
           <p class="hint" style="margin:0 0 16px;line-height:1.6;">
             填了即覆盖 <code class="mono" style="color:var(--accent);font-size:11px;">config.yml → llm.{provider}.*</code>，
             按所选「LLM 提供方」自动切换。仅保存在你本地浏览器（localStorage），不会上传任何服务器。
@@ -216,44 +265,18 @@
             <input id="f-llm-model" type="text" autocomplete="off" spellcheck="false" placeholder="例：deepseek-chat / deepseek-v4-pro">
           </div>
         </div>
+      </details>
 
-        <!-- 素材 -->
-        <div class="card emphasis" style="margin-bottom:20px;">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">素材 · Footage</h3>
-          </div>
-          <div class="field">
-            <label><span class="zh">场景目录（每行一个绝对路径，可留空）</span>SCENE DIRS</label>
-            <textarea id="f-scenes" placeholder="D:\GITHUB\shadowblade\assets\beauty\scene-1&#10;D:\GITHUB\shadowblade\assets\beauty\scene-2"></textarea>
-            <div class="scene-tools">
-              <button type="button" class="btn btn-ghost btn-sm" id="btnSceneAdd" title="粘贴一个绝对路径加进来">+ 添加目录</button>
-              <select id="f-scene-recent" class="scene-recent" title="从最近用过的目录里挑">
-                <option value="">最近用过…</option>
-              </select>
-              <button type="button" class="btn btn-ghost btn-sm" id="btnSceneClear" title="清空 textarea">清空</button>
-            </div>
-            <span class="hint">每个目录下放 .mp4 / .mov / .jpg / .png。留空则完全依赖网络素材补量。<br/>
-              <span style="color:var(--text-3);">提示：从资源管理器复制目录路径后，点「+ 添加目录」粘贴进来。最近用过的会自动保存在本地浏览器。目录名最后一段会作为「场景名」用来匹配脚本分镜，建议用英文连字符（如 <code class="mono" style="color:var(--accent);font-size:11px;">store-front</code>），中文也支持。</span>
-            </span>
-            <div id="scene-suggestions" class="scene-suggestions" style="display:none;"></div>
-          </div>
-          <div class="row">
-            <div class="field">
-              <label><span class="zh">片段最短</span>SEG MIN (s)</label>
-              <input id="f-segmin" type="number" value="3" min="1">
-            </div>
-            <div class="field">
-              <label><span class="zh">片段最长</span>SEG MAX (s)</label>
-              <input id="f-segmax" type="number" value="8" min="1">
-            </div>
-          </div>
-        </div>
-
-        <!-- 智能补量 -->
-        <div class="card emphasis" style="margin-bottom:20px;">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">智能补量 · Smart Pad</h3>
-          </div>
+      <!-- accordion: 智能补量 -->
+      <details class="accordion" data-accordion="stock-pad">
+        <summary class="accordion-head">
+          <span class="accordion-title">
+            <span class="zh">智能补量 · Smart Pad</span>
+            <span class="accordion-sub">素材不足时从公开素材库自动下载补齐</span>
+          </span>
+          <span class="accordion-toggle">▾</span>
+        </summary>
+        <div class="accordion-body">
           <p class="hint" style="margin:0 0 16px;line-height:1.6;">
             素材不足时，从公开素材库按脚本关键词自动下载补足。
             <span style="color:var(--accent);">需要先在 config.yml 填 resource.{provider}.api_key</span>
@@ -278,7 +301,16 @@
             <label><span class="zh">追加关键词（可选，逗号分隔）</span>EXTRA KEYWORDS</label>
             <input id="f-stock-kw" type="text" placeholder="留空则自动用脚本生成的 keywords">
           </div>
-
+          <div class="row">
+            <div class="field">
+              <label><span class="zh">片段最短</span>SEG MIN (s)</label>
+              <input id="f-segmin" type="number" value="3" min="1">
+            </div>
+            <div class="field">
+              <label><span class="zh">片段最长</span>SEG MAX (s)</label>
+              <input id="f-segmax" type="number" value="8" min="1">
+            </div>
+          </div>
           <div class="field">
             <label>
               <span class="zh">API Key（按所选来源自动切换）</span>API KEY
@@ -293,13 +325,18 @@
             </span>
           </div>
         </div>
+      </details>
 
-        <!-- 开关 -->
-        <div class="card emphasis">
-          <div class="panel-head" style="margin-bottom:8px;">
-            <h3 style="font-size:14px;color:var(--text-2);">流水线开关 · Stages</h3>
-          </div>
-
+      <!-- accordion: 流水线开关 -->
+      <details class="accordion" data-accordion="toggles">
+        <summary class="accordion-head">
+          <span class="accordion-title">
+            <span class="zh">流水线开关 · Stages</span>
+            <span class="accordion-sub">关掉不需要的阶段（字幕 / 补量 / 封面 / 转场）</span>
+          </span>
+          <span class="accordion-toggle">▾</span>
+        </summary>
+        <div class="accordion-body">
           <div class="toggle-row">
             <div class="toggle-lbl">
               <span class="zh">生成字幕</span>
@@ -344,10 +381,30 @@
             </label>
           </div>
         </div>
-      </div>
+      </details>
 
-      <!-- ============== 右：流水线状态 ============== -->
-      <div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       SECTION 3 · 流水线 · 产物
+       ============================================================ -->
+  <section class="section-block" id="s3">
+    <div class="section-head">
+      <div class="section-head-row">
+        <span class="section-num mono">03</span>
+        <h2 class="section-title">流水线 · 产物</h2>
+        <span class="section-sub">Step 3 · Pipeline & Artifacts</span>
+      </div>
+      <p class="section-lead">
+        6 个阶段进度 + 实时产物预览。失败可单独「从此步重试」。
+      </p>
+    </div>
+
+    <div class="pipeline-grid-v2">
+      <!-- 左：6 阶段进度 -->
+      <div class="pipeline-col">
         <div class="panel-head">
           <h3>流水线</h3>
           <span class="en-sub-sm">Pipeline</span>
@@ -414,9 +471,11 @@
             <div class="status"><span id="st-6">待执行</span></div>
           </div>
         </div>
+      </div>
 
-        <!-- 产物 -->
-        <div class="panel-head" style="margin-top:32px;">
+      <!-- 右：产物 -->
+      <div class="artifacts-col">
+        <div class="panel-head">
           <h3>产物</h3>
           <span class="en-sub-sm">Artifacts</span>
         </div>
@@ -432,7 +491,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </section>
 

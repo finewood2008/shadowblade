@@ -1242,3 +1242,77 @@ function llmSave(provider, field, val) {
 
   refreshDropdown();
 })();
+
+// ============================================================
+//   Accordion 展开状态持久化（localStorage）
+//   <details class="accordion" data-accordion="xxx"> 自动记忆
+// ============================================================
+(function initAccordions() {
+  const LS_KEY = "shadowblade.accordion.";
+  const accordions = document.querySelectorAll(".accordion[data-accordion]");
+  if (accordions.length === 0) return;
+
+  accordions.forEach((el) => {
+    const id = el.dataset.accordion;
+    if (!id) return;
+    // 恢复
+    try {
+      const saved = localStorage.getItem(LS_KEY + id);
+      if (saved === "1") el.setAttribute("open", "");
+      if (saved === "0") el.removeAttribute("open");
+    } catch {}
+
+    // 保存
+    el.addEventListener("toggle", () => {
+      try {
+        localStorage.setItem(LS_KEY + id, el.open ? "1" : "0");
+      } catch {}
+    });
+  });
+})();
+
+// ============================================================
+//   顶部锚点导航：点击切换 active 状态 + 平滑滚动到对应 section
+// ============================================================
+(function initTopbarNav() {
+  const items = document.querySelectorAll(".topbar-nav-item");
+  if (items.length === 0) return;
+
+  // 点击：平滑滚动到目标 section（浏览器默认就支持 #anchor，但补一个 smooth scroll）
+  items.forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const href = a.getAttribute("href") || "";
+      if (!href.startsWith("#")) return;
+      const target = document.querySelector(href);
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      history.replaceState(null, "", href);
+    });
+  });
+
+  // IntersectionObserver：当 section 进入视口时高亮对应导航
+  const sections = document.querySelectorAll(".section-block[id]");
+  if (sections.length === 0) return;
+
+  const map = new Map(); // section id -> nav item
+  items.forEach((a) => {
+    const href = a.getAttribute("href") || "";
+    if (href.startsWith("#")) map.set(href.slice(1), a);
+  });
+
+  const obs = new IntersectionObserver(
+    (entries) => {
+      // 选最靠上的可见 section
+      const visible = entries
+        .filter((en) => en.isIntersecting)
+        .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+      if (visible.length === 0) return;
+      const id = visible[0].target.id;
+      items.forEach((a) => a.classList.toggle("active", map.get(id) === a));
+    },
+    { rootMargin: "-100px 0px -50% 0px", threshold: 0 }
+  );
+
+  sections.forEach((s) => obs.observe(s));
+})();
