@@ -160,10 +160,13 @@ class GenerateScriptRequest(BaseModel):
     llm_api_key: Optional[str] = None
     llm_base_url: Optional[str] = None
     llm_model_name: Optional[str] = None
+    # 脚本结构模板 id：general / promo / testimonial / promotion / tutorial / event
+    template_id: Optional[str] = None
 
 class GenerateScriptResponse(BaseModel):
     content: str
     keywords: str
+    template_id: str = "general"
 
 # --- /wizard/chat ---
 
@@ -185,6 +188,7 @@ class WizardFields(BaseModel):
     length: str = "500"
     language: str = "zh-CN"
     style_hint: str = ""
+    template_id: str = "general"  # 由 LLM 在向导里自动推断
 
 class WizardChatResponse(BaseModel):
     done: bool
@@ -849,6 +853,86 @@ def health_check():
     }
 
 
+# ============================================================
+# 脚本结构模板库 —— 本地生活高频场景
+#
+# 每个模板必须包含 {topic} {language} {length} 三个占位符；
+# 模板由 generate_script() 包装成 langchain PromptTemplate 后喂给
+# LLM service.generate_content()。这样不动 service 层就能切换结构。
+#
+# 模板里**不写**章节小标题、列表序号，因为最终要进 TTS 朗读，
+# 直接说「开场：xxx」会被读出来。结构指令藏在 prompt 里给 LLM 看。
+# ============================================================
+
+_SCRIPT_TEMPLATES = {
+    "general": (
+        "请为以下主题写一段短视频解说稿，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "要求：\n"
+        "1. 直接输出解说稿正文，不要标题、不要章节标号、不要带「开场」「结尾」这类提示词。\n"
+        "2. 句子短，口语化，适合朗读，不要书面语和长句子。\n"
+        "3. 用 {language} 输出。"
+    ),
+    "promo": (
+        "请围绕主题写一条短视频解说稿，类型是「产品/服务种草」，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "解说稿要包含这些内容（按顺序，但用流畅自然的口语连起来，**不要写小标题**）：\n"
+        "（a）开场抛一个痛点或反差，15 字以内；\n"
+        "（b）引出店里做什么；\n"
+        "（c）1–2 个具体的核心卖点，要有细节不要空泛；\n"
+        "（d）一个使用场景或客户感受；\n"
+        "（e）结尾的行动召唤（来店、私信、地址自然带出）。\n\n"
+        "输出要求：直接是可口播的正文，用 {language}，不要章节序号、不要带「第一」「第二」这种连接词。"
+    ),
+    "testimonial": (
+        "请围绕主题写一条短视频解说稿，类型是「客户证言」，**全程用第一人称**，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "解说稿要按这个内在节奏（不要写小标题）：\n"
+        "（a）我是谁、来自哪里、做了什么（一句话）；\n"
+        "（b）之前的困扰或顾虑；\n"
+        "（c）选择这家店的理由；\n"
+        "（d）现在的效果或体验，要具体；\n"
+        "（e）推荐给谁。\n\n"
+        "要求：真实自然、不夸张、避免「特别赞」「非常棒」这类空话，用 {language}。"
+    ),
+    "promotion": (
+        "请围绕主题写一条短视频解说稿，类型是「限时促销/活动」，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "解说稿的内在节奏（不要写小标题）：\n"
+        "（a）开场强紧迫感：限时 / 限量 / 活动名；\n"
+        "（b）原价 vs 活动价的对比，有数字；\n"
+        "（c）套餐内含什么，要具体；\n"
+        "（d）适合谁；\n"
+        "（e）截止时间 + 报名/到店方式。\n\n"
+        "要求：节奏快、句子短、用 {language}。"
+    ),
+    "tutorial": (
+        "请围绕主题写一条短视频解说稿，类型是「知识科普」，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "解说稿的内在节奏（不要写小标题）：\n"
+        "（a）开场抛一个误区或常见问题；\n"
+        "（b）第一个关键点，要具体可执行；\n"
+        "（c）第二个关键点；\n"
+        "（d）给一个适用建议；\n"
+        "（e）软引到店里咨询或试一下。\n\n"
+        "要求：专业但不说教，避免「大家好我是xx」这类开场，用 {language}。"
+    ),
+    "event": (
+        "请围绕主题写一条短视频解说稿，类型是「活动预告」，{length} 字以内。\n\n"
+        "主题：{topic}\n\n"
+        "解说稿的内在节奏（不要写小标题）：\n"
+        "（a）活动名 + 时间 + 地点，一句话讲清；\n"
+        "（b）活动核心内容；\n"
+        "（c）亮点 1–2 个，告诉观众为什么应该来；\n"
+        "（d）报名方式 + 截止时间；\n"
+        "（e）友好收尾。\n\n"
+        "要求：有期待感、用 {language}。"
+    ),
+}
+
+_VALID_TEMPLATE_IDS = set(_SCRIPT_TEMPLATES.keys())
+
+
 @app.post("/generate-script", response_model=GenerateScriptResponse)
 def generate_script(req: GenerateScriptRequest):
     """
@@ -860,9 +944,18 @@ def generate_script(req: GenerateScriptRequest):
 
     If req.llm_api_key / llm_base_url / llm_model_name are provided, they
     temporarily override config.yml -> llm.{provider}.* for this call only.
+
+    If req.template_id is one of _SCRIPT_TEMPLATES, a custom PromptTemplate
+    is built from it and used in place of the service's default
+    topic_prompt_template.
     """
     try:
         provider_name = req.llm_provider or my_config['llm']['provider']
+
+        # 决定脚本结构模板
+        template_id = (req.template_id or "general").strip().lower()
+        if template_id not in _VALID_TEMPLATE_IDS:
+            template_id = "general"
 
         # Temporarily inject overrides into my_config so that the LLM service
         # constructor (which reads my_config['llm'][provider]['api_key'] etc.)
@@ -877,10 +970,16 @@ def generate_script(req: GenerateScriptRequest):
 
             llm_service = get_llm_provider(provider_name)
 
-            # Generate main content
+            # 用模板包一个 PromptTemplate 喂给 service，绕开默认的通用模板
+            from langchain_core.prompts import PromptTemplate
+            topic_prompt_template = PromptTemplate(
+                input_variables=["topic", "language", "length"],
+                template=_SCRIPT_TEMPLATES[template_id],
+            )
+
             content = llm_service.generate_content(
                 req.topic,
-                llm_service.topic_prompt_template,
+                topic_prompt_template,
                 req.language,
                 req.length,
             )
@@ -909,7 +1008,11 @@ def generate_script(req: GenerateScriptRequest):
             prompt_template=llm_service.keyword_prompt_template,
         )
 
-        return GenerateScriptResponse(content=content.strip(), keywords=keywords.strip())
+        return GenerateScriptResponse(
+            content=content.strip(),
+            keywords=keywords.strip(),
+            template_id=template_id,
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -921,35 +1024,43 @@ def generate_script(req: GenerateScriptRequest):
 _WIZARD_SYSTEM_PROMPT = """你是「影刀短视频工作台」的智能向导，帮一个本地服务行业（餐饮 / 美容 / 零售 / 教育 / 家政 / 健身 等）的店主，通过最多 6 轮简短对话，收集生成一条短视频所需的核心信息。
 
 # 你需要收集的字段
-- topic：视频主题，一句话（包含业务 + 这条视频的核心内容），例如"夏季美白护理疗程种草"
+- topic：视频主题，一句话（包含业务 + 这条视频的核心内容），例如「夏季美白护理疗程种草」
 - intro：必须出现在视频里的具体信息（门店地址、电话、活动截止日期、限时优惠 等），如果用户没提就留空字符串
 - length：脚本字数，按用户期望的视频时长换算：30 秒 ≈ 200，45 秒 ≈ 300，60 秒 ≈ 400，90 秒 ≈ 600。返回字符串，不带单位
-- language：固定 "zh-CN"
-- style_hint：风格暗示，从这些里挑一个或自由组合："快节奏种草"、"故事化叙事"、"教学科普"、"客户证言"、"价格促销"、"活动预告"
+- language：固定 「zh-CN」
+- style_hint：风格暗示，从这些里挑一个或自由组合：「快节奏种草」「故事化叙事」「教学科普」「客户证言」「价格促销」「活动预告」
+- template_id：脚本结构模板。从下面 6 个里挑一个：
+  · general —— 通用解说，不确定时用这个
+  · promo —— 产品种草 / 服务种草（强调卖点和适合人群）
+  · testimonial —— 客户证言（第一人称、有真实改善体验）
+  · promotion —— 限时促销（强调价格、优惠、截止日期）
+  · tutorial —— 知识科普 / 教学（讲一个误区或干货）
+  · event —— 活动预告（活动名、时间、地点、报名方式）
+  按用户的回答推断最合适的一个，不要直接把这些英文 id 念给用户听。
 
 # 对话规则
 1. 每轮只问 1 个问题，简短自然，不要给一堆并列选项让用户挑。
 2. 如果用户的回答已经能推断出某个字段，就不要重复问。
-3. 优先问最有信息密度的：业务和主题 → 想给谁看 → 想突出什么 → 是否有素材 → 时长 → 必须出现的信息。
+3. 优先问最有信息密度的：业务和主题 → 这条视频的目的（种草 / 促销 / 客户证言 / 活动 / 干货 / 单纯介绍）→ 想给谁看 → 想突出什么 → 时长 → 必须出现的信息。
 4. 用户回答非常短时，主动用一句话把推断的细节补出来让用户确认。
-5. 最多 6 轮（用户消息数 ≤ 6）。即使信息不全也要在第 6 轮强制结束 —— 缺失的字段用合理的默认值填上。
+5. 最多 6 轮（用户消息数 ≤ 6）。即使信息不全也要在第 6 轮强制结束 —— 缺失的字段用合理的默认值填上（template_id 不确定就填 general）。
 
 # 终止协议（非常重要）
 当你认为信息够了、或者已经走完第 6 轮，必须按下面的格式结束。最后一条回复严格遵守：
 
-先用一两句话总结你收集到的信息 + 告诉用户"已经准备好，可以开始生成了"。
+先用一两句话总结你收集到的信息 + 告诉用户「已经准备好，可以开始生成了」。
 然后另起一行，输出严格的标记包裹的 JSON：
 
 ###FIELDS###
-{"topic": "...", "intro": "...", "length": "500", "language": "zh-CN", "style_hint": "..."}
+{"topic": "...", "intro": "...", "length": "500", "language": "zh-CN", "style_hint": "...", "template_id": "general"}
 ###END###
 
-JSON 必须是合法的 UTF-8 JSON，所有字段都要有（intro / style_hint 可以是空字符串），length 必须是字符串。
+JSON 必须是合法的 UTF-8 JSON，所有字段都要有（intro / style_hint 可以是空字符串），length 必须是字符串，template_id 必须是上面 6 个英文 id 之一。
 
 # 不要做的事
 - 不要写超过 80 字的回复（用户在手机上看，太长会烦）
 - 不要在 ###FIELDS### 之前或之后追加 markdown 标题、列表符号
-- 不要把示例文本"..."直接放进 JSON
+- 不要把示例占位符直接放进 JSON
 """
 
 

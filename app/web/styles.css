@@ -896,6 +896,46 @@ a { color: var(--text); text-decoration: none; }
   font-size: 10px;
 }
 
+/* —— 脚本就地编辑（textarea + 重跑按钮） —— */
+.artifact-card .script-editor {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: "HarmonyOS Sans", "PingFang SC", "Microsoft YaHei",
+               "Noto Sans SC", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  min-height: 180px;
+  max-height: 360px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.artifact-card .script-editor:focus {
+  border-color: var(--accent);
+}
+
+.artifact-card .script-edit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.artifact-card .script-edit-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.5;
+  flex: 1;
+  min-width: 200px;
+}
+
 /* —— elapsed timer —— */
 
 .timer {

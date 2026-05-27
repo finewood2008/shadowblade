@@ -160,6 +160,9 @@ function escapeHtml(s) {
 }
 
 function renderArtifacts() {
+  // 重渲染前先把用户在 textarea 里的改动同步回 state，避免重渲覆盖编辑
+  syncScriptFromDOM();
+
   const wrap = $("artifacts");
   wrap.innerHTML = "";
 
@@ -171,6 +174,9 @@ function renderArtifacts() {
       .slice(0, 8)
       .map((k) => `<span class="kw-chip">${escapeHtml(k)}</span>`)
       .join("");
+    const tplBadge = state.script_template_id
+      ? `<span>模板 · ${escapeHtml(state.script_template_id)}</span>`
+      : "";
     cards.push(`
       <div class="artifact-card">
         <div class="head-row">
@@ -178,11 +184,16 @@ function renderArtifacts() {
           <span class="name-en">SCRIPT · TXT</span>
         </div>
         <div class="script-meta">
-          <span>${state.script.length} 字</span>
+          <span id="script-char-count">${state.script.length} 字</span>
+          ${tplBadge}
           ${state.script_subtitle_count != null ? `<span>字幕 ${state.script_subtitle_count} 条</span>` : ""}
         </div>
         ${kws ? `<div class="script-meta">${kws}</div>` : ""}
-        <div class="script-body">${escapeHtml(state.script)}</div>
+        <textarea id="script-editor" class="script-editor" rows="10" spellcheck="false">${escapeHtml(state.script)}</textarea>
+        <div class="script-edit-row">
+          <span class="script-edit-hint">改完点这里，会用新文案重跑配音 → 字幕 → 混剪 → 封面。</span>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnRerunFromScript">用这个脚本重新跑 →</button>
+        </div>
       </div>
     `);
   } else {
@@ -245,6 +256,52 @@ function renderArtifacts() {
   }
 
   wrap.innerHTML = cards.join("");
+
+  // 重新挂事件：textarea 实时更新字数 + 重跑按钮
+  const editor = document.getElementById("script-editor");
+  if (editor) {
+    editor.addEventListener("input", () => {
+      const cnt = document.getElementById("script-char-count");
+      if (cnt) cnt.textContent = `${editor.value.length} 字`;
+    });
+  }
+  const rerunBtn = document.getElementById("btnRerunFromScript");
+  if (rerunBtn) {
+    rerunBtn.addEventListener("click", onRerunFromScript);
+  }
+}
+
+// 把 textarea 里的最新文本同步回 state.script，避免 renderArtifacts 重渲覆盖编辑
+function syncScriptFromDOM() {
+  const editor = document.getElementById("script-editor");
+  if (editor && typeof editor.value === "string") {
+    state.script = editor.value;
+  }
+}
+
+// 用 textarea 里的脚本重跑 stage 2–6（跳过 stage 1）
+async function onRerunFromScript() {
+  syncScriptFromDOM();
+  if (!state.script || !state.script.trim()) {
+    alert("脚本不能为空");
+    return;
+  }
+  if (!confirm("会用你改过的脚本重新跑：配音 → 字幕 → 智能补量 → 混剪 → 封面。\n之前的视频和封面会被覆盖。\n\n继续？")) {
+    return;
+  }
+  // 把脚本之后的产物清空，避免上一次的视频/封面误用
+  state.audio_file = "";
+  state.audio_duration = 0;
+  state.subtitle_file = "";
+  state.script_subtitle_count = null;
+  state.stock_dir = "";
+  state.stock_files = [];
+  state.stock_seconds = 0;
+  state.video_file = "";
+  state.video_duration = 0;
+  state.cover_file = "";
+  renderArtifacts();
+  await runFrom(1);
 }
 
 // ---------- 表单收集 ----------
@@ -264,6 +321,7 @@ function collectInputs() {
     length: $("f-length").value || "500",
     language: $("f-lang").value,
     intro: $("f-intro").value.trim(),
+    template: ($("f-template") && $("f-template").value) || "general",
     llm: $("f-llm").value || null,
     llmApiKey: $("f-llm-key").value.trim(),
     llmBaseUrl: $("f-llm-base").value.trim(),
@@ -321,13 +379,19 @@ function basename(p) {
 // ---------- 6 个阶段 ----------
 async function stage1Script(inp) {
   setStage(1, "running");
-  const body = { topic: inp.topic, language: inp.language, length: inp.length };
+  const body = {
+    topic: inp.topic,
+    language: inp.language,
+    length: inp.length,
+    template_id: inp.template || "general",
+  };
   if (inp.llm) body.llm_provider = inp.llm;
   if (inp.llmApiKey) body.llm_api_key = inp.llmApiKey;
   if (inp.llmBaseUrl) body.llm_base_url = inp.llmBaseUrl;
   if (inp.llmModelName) body.llm_model_name = inp.llmModelName;
   const j = await postJSON("/generate-script", body);
   state.script = j.content || "";
+  state.script_template_id = j.template_id || body.template_id;
   state.script_keywords = Array.isArray(j.keywords)
     ? j.keywords
     : (typeof j.keywords === "string"
@@ -335,7 +399,7 @@ async function stage1Script(inp) {
         : []);
   const kwPreview = state.script_keywords.slice(0, 5).join(", ");
   setStage(1, "done", {
-    meta: `${state.script.length} 字${kwPreview ? " · kw=" + kwPreview : ""}`,
+    meta: `${state.script.length} 字 · ${state.script_template_id}${kwPreview ? " · kw=" + kwPreview : ""}`,
   });
   // 脚本一出来就在产物区展示，方便用户即刻校对
   renderArtifacts();
@@ -831,6 +895,16 @@ function llmSave(provider, field, val) {
     if (fields.intro) $("f-intro").value = fields.intro;
     if (fields.length) $("f-length").value = String(fields.length);
     if (fields.language) $("f-lang").value = fields.language;
+    // 把推断出的模板写到下拉里；不在 6 个 id 里就忽略，保留用户已选
+    if (fields.template_id) {
+      const sel = $("f-template");
+      const valid = new Set(
+        Array.from(sel.options).map((o) => o.value),
+      );
+      if (sel && valid.has(fields.template_id)) {
+        sel.value = fields.template_id;
+      }
+    }
     // style_hint 暂时不映射到独立字段（V0 简化）
     // 不覆盖用户已填的素材目录 / 引擎选型，那是用户自己的事
   }

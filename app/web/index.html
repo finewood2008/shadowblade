@@ -130,6 +130,18 @@
             <label><span class="zh">片头水印文字</span>INTRO TEXT</label>
             <input id="f-intro" type="text" placeholder="例：徐汇美甲店">
           </div>
+          <div class="field">
+            <label><span class="zh">脚本结构</span>SCRIPT TEMPLATE</label>
+            <select id="f-template">
+              <option value="general" selected>通用解说 · 不确定就选这个</option>
+              <option value="promo">产品种草 · 强调卖点 + 适合人群</option>
+              <option value="testimonial">客户证言 · 第一人称真实体验</option>
+              <option value="promotion">限时促销 · 价格 + 截止日期</option>
+              <option value="tutorial">知识科普 · 讲一个误区或干货</option>
+              <option value="event">活动预告 · 活动名 + 时间 + 报名</option>
+            </select>
+            <span class="hint">影响脚本生成阶段的提示词；AI 向导会自动帮你选。</span>
+          </div>
         </div>
 
         <!-- 引擎 -->
