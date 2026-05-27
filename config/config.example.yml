@@ -20,8 +20,14 @@ audio:
   local_recognition:
     provider: fasterwhisper
     fasterwhisper:
-      model_name: tiny
+      # 模型档位：tiny(39MB,英文勉强可用,中文几乎不可用) /
+      #          base(74MB) / small(244MB,中文推荐起步档) /
+      #          medium(769MB,中文准确率更高) / large-v3(1.5GB)
+      # 默认 small —— tiny 在中文上错字非常严重，不建议生产用
+      model_name: small
+      # 设备：cuda (有 NVIDIA GPU) / cpu
       device_type: cuda
+      # 算精：cpu 用 int8；cuda 可用 float16 / int8_float16
       compute_type: int8
 
 

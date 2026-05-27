@@ -78,9 +78,40 @@ class FasterWhisperRecognitionService:
         # or run on CPU with INT8
         # model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
-        segments, info = model.transcribe(audioFile, beam_size=5)
+        # 规范化语言代码：zh-CN / zh_CN / zh-Hans → zh
+        # faster-whisper 用的是 ISO 639-1（两字母）
+        lang_iso = None
+        if language:
+            lang_iso = str(language).strip().lower().replace("_", "-").split("-")[0]
+            if lang_iso in ("zh-hant", "zh-tw", "zh-hk"):
+                lang_iso = "zh"
+            # 空字符串过滤
+            if not lang_iso:
+                lang_iso = None
 
-        print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
+        # 中文场景给一段简体初始 prompt，强烈引导模型输出简体而非繁体，
+        # 同时给一些日常美业/本地生活词汇做"声学锚点"。
+        initial_prompt = None
+        if lang_iso == "zh":
+            initial_prompt = (
+                "以下是普通话简体中文转写。"
+                "常见词：欢迎、到店、预约、优惠、套餐、会员、新品、上架、限时、福利。"
+            )
+
+        transcribe_kwargs = {
+            "beam_size": 5,
+            "vad_filter": True,            # 跳过静音段，避免幻觉
+            "vad_parameters": {"min_silence_duration_ms": 500},
+        }
+        if lang_iso:
+            transcribe_kwargs["language"] = lang_iso
+        if initial_prompt:
+            transcribe_kwargs["initial_prompt"] = initial_prompt
+
+        segments, info = model.transcribe(audioFile, **transcribe_kwargs)
+
+        print("Detected language '%s' with probability %f (requested=%s)" % (
+            info.language, info.language_probability, lang_iso))
 
         for segment in segments:
             print("[%.2fs -> %.2fs] %s" % (segment.start, segment.end, segment.text))
