@@ -473,7 +473,29 @@ function validate(inp) {
   if (inp.scenes.length === 0 && !inp.enablePad) {
     return "请填写至少一个素材目录，或开启「智能补量」从网络补素材";
   }
+  // LLM 凭据 sanity check：避免后端 fallback 到 config 的 placeholder 然后卡 30 秒
+  // 没选 provider 时也禁止，因为 config.yml 默认 provider 是 Moonshot 且 key 是占位符
+  if (!inp.llm) {
+    expandLlmAccordions();
+    return "请到「高级设置 → 引擎」里选一个 LLM 提供方";
+  }
+  if (!inp.llmApiKey) {
+    expandLlmAccordions();
+    return `请到「高级设置 → LLM 凭据」里填上 ${inp.llm} 的 API Key`;
+  }
   return null;
+}
+
+// 把 section2 的引擎 + LLM 凭据两个 accordion 展开 + 滚动到 section2
+function expandLlmAccordions() {
+  try {
+    const eng = document.querySelector('details.accordion[data-accordion="engines"]');
+    const cred = document.querySelector('details.accordion[data-accordion="llm-cred"]');
+    if (eng) eng.setAttribute("open", "");
+    if (cred) cred.setAttribute("open", "");
+    const s2 = document.getElementById("s2");
+    if (s2) s2.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch {}
 }
 
 // ---------- 调用 ----------
@@ -1092,7 +1114,38 @@ function llmSave(provider, field, val) {
   }
 
   // ---------- 开始 ----------
+  // 检查 LLM 凭据：没填就提示用户去高级设置填，并自动展开 accordion
+  function ensureLlmReady() {
+    const provider = ($("f-llm") && $("f-llm").value) || "";
+    const apiKey = ($("f-llm-key") && $("f-llm-key").value.trim()) || "";
+
+    // "默认（config.yml）" 选项的 provider 是空字符串
+    // 空 provider 时无法判断 config.yml 里有没有真 key，让用户显式选 + 填
+    if (!provider || !apiKey) {
+      // 自动展开 LLM 凭据 accordion
+      const credAcc = document.querySelector('details.accordion[data-accordion="llm-cred"]');
+      if (credAcc) credAcc.setAttribute("open", "");
+      const engAcc = document.querySelector('details.accordion[data-accordion="engines"]');
+      if (engAcc) engAcc.setAttribute("open", "");
+      // 滚动到 section 2
+      const s2 = document.getElementById("s2");
+      if (s2) s2.scrollIntoView({ behavior: "smooth", block: "start" });
+      const msg = !provider
+        ? "请先在「高级设置 → 引擎」里选一个 LLM 提供方"
+        : "请先在「高级设置 → LLM 凭据」里填上对应 LLM 的 API Key";
+      // 临时在聊天流里显示一条提示
+      wstate.messages = [{
+        role: "assistant",
+        content: `${msg}，然后再点「开始向导 →」。`
+      }];
+      renderStream();
+      return false;
+    }
+    return true;
+  }
+
   startBtn.addEventListener("click", () => {
+    if (!ensureLlmReady()) return;
     wstate.messages = [{ role: "user", content: "__start__" }];
     wstate.done = false;
     appliedEl.style.display = "none";

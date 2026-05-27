@@ -1181,6 +1181,19 @@ def _llm_chat(provider_name, messages, overrides=None, max_tokens=600, temperatu
             ),
         )
 
+    # provider → 默认 base_url（用户的 config.yml 里没显式写 base_url 时的 fallback）
+    # 避免没 base_url 时 OpenAI SDK 默认连官方 OpenAI 端点 → 401 重试 15s+ 看起来像卡死
+    _PROVIDER_DEFAULT_BASE_URL = {
+        "DeepSeek": "https://api.deepseek.com/v1",
+        "Moonshot": "https://api.moonshot.cn/v1",
+        "Tongyi": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "OpenAI": None,   # SDK 默认就是 OpenAI 官方
+        "Ollama": "http://127.0.0.1:11434/v1",
+    }
+
+    # 常见 placeholder——用户没在 config.yml 改默认值时直接拦截
+    _PLACEHOLDER_KEYS = {"YOUR_API_KEY", "API_KEY", "your_api_key", "", "null", "None"}
+
     llm_cfg = my_config.setdefault('llm', {})
     prov_cfg = llm_cfg.setdefault(provider_name, {})
     backup = {k: prov_cfg.get(k) for k in ("api_key", "base_url", "model_name")}
@@ -1192,10 +1205,16 @@ def _llm_chat(provider_name, messages, overrides=None, max_tokens=600, temperatu
         api_key = prov_cfg.get("api_key")
         base_url = prov_cfg.get("base_url")
         model_name = prov_cfg.get("model_name")
-        if not api_key:
+
+        # 没填或填了 placeholder：立即报错，不让 SDK 去打远端浪费 15 秒重试
+        if not api_key or str(api_key).strip() in _PLACEHOLDER_KEYS:
             raise HTTPException(
                 status_code=400,
-                detail=f"未找到 {provider_name} 的 api_key（既不在 config.yml 也没从前端传入）",
+                detail=(
+                    f"{provider_name} 的 api_key 未配置（当前值看起来是占位符）。"
+                    "请到「高级设置 → LLM 凭据」填上你的 API Key，"
+                    "或在 config.yml 里写入真实的 llm.{provider}.api_key。"
+                ),
             )
         if not model_name:
             raise HTTPException(
@@ -1203,7 +1222,17 @@ def _llm_chat(provider_name, messages, overrides=None, max_tokens=600, temperatu
                 detail=f"未找到 {provider_name} 的 model_name",
             )
 
-        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
+        # base_url 用 provider 默认值兜底，避免误打 openai.com
+        if not base_url:
+            base_url = _PROVIDER_DEFAULT_BASE_URL.get(provider_name)
+
+        # 短超时——LLM 一次对话理论上 < 10s，给 30s 足够；
+        # 超过就是网络/服务端有问题，立即报错比让用户干等好。
+        client = (
+            OpenAI(api_key=api_key, base_url=base_url, timeout=30.0, max_retries=1)
+            if base_url
+            else OpenAI(api_key=api_key, timeout=30.0, max_retries=1)
+        )
         resp = client.chat.completions.create(
             model=model_name,
             messages=messages,
