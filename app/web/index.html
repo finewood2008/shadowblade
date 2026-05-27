@@ -233,8 +233,9 @@
               <button type="button" class="btn btn-ghost btn-sm" id="btnSceneClear" title="清空 textarea">清空</button>
             </div>
             <span class="hint">每个目录下放 .mp4 / .mov / .jpg / .png。留空则完全依赖网络素材补量。<br/>
-              <span style="color:var(--text-3);">提示：从资源管理器复制目录路径后，点「+ 添加目录」粘贴进来。最近用过的会自动保存在本地浏览器。</span>
+              <span style="color:var(--text-3);">提示：从资源管理器复制目录路径后，点「+ 添加目录」粘贴进来。最近用过的会自动保存在本地浏览器。目录名最后一段会作为「场景名」用来匹配脚本分镜，建议用英文连字符（如 <code class="mono" style="color:var(--accent);font-size:11px;">store-front</code>），中文也支持。</span>
             </span>
+            <div id="scene-suggestions" class="scene-suggestions" style="display:none;"></div>
           </div>
           <div class="row">
             <div class="field">

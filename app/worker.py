@@ -162,11 +162,37 @@ class GenerateScriptRequest(BaseModel):
     llm_model_name: Optional[str] = None
     # 脚本结构模板 id：general / promo / testimonial / promotion / tutorial / event
     template_id: Optional[str] = None
+    # 用户当前已经有的 scene 目录名（kebab-case），交给分镜 LLM 优先匹配
+    available_scenes: List[str] = []
+
+class ScriptSegment(BaseModel):
+    """脚本的一句话 + 它应该配什么场景的画面"""
+    text: str
+    scene_hint: str  # kebab-case 目录名（可能在 available_scenes 里，也可能是 LLM 推荐的新名）
 
 class GenerateScriptResponse(BaseModel):
     content: str
     keywords: str
     template_id: str = "general"
+    # 把脚本按口播节奏切成 6-12 段，每段绑一个 scene_hint，由 mix 阶段按段挑素材
+    segments: List[ScriptSegment] = []
+    # LLM 觉得这条脚本还需要哪些场景目录（用户参考，不一定真的去建）
+    suggested_scenes: List[str] = []
+
+# --- /segment-script（脚本编辑后重新分镜用） ---
+
+class SegmentScriptRequest(BaseModel):
+    script: str
+    template_id: str = "general"
+    available_scenes: List[str] = []
+    llm_provider: Optional[str] = None
+    llm_api_key: Optional[str] = None
+    llm_base_url: Optional[str] = None
+    llm_model_name: Optional[str] = None
+
+class SegmentScriptResponse(BaseModel):
+    segments: List[ScriptSegment]
+    suggested_scenes: List[str] = []
 
 # --- /wizard/chat ---
 
@@ -189,6 +215,8 @@ class WizardFields(BaseModel):
     language: str = "zh-CN"
     style_hint: str = ""
     template_id: str = "general"  # 由 LLM 在向导里自动推断
+    # 向导推荐用户应该建哪些 scene 目录（用户参考，不强制）
+    suggested_scene_dirs: List[str] = []
 
 class WizardChatResponse(BaseModel):
     done: bool
@@ -283,6 +311,8 @@ class MixVideoRequest(BaseModel):
     subtitle_file: Optional[str] = None
     video_config: VideoConfig
     subtitle_config: Optional[SubtitleConfig] = None
+    # 脚本分镜：按段顺序选素材。空列表 → 走老逻辑（按目录顺序遍历）
+    segments: List[ScriptSegment] = []
 
 class MixVideoResponse(BaseModel):
     video_file: str
@@ -1008,12 +1038,65 @@ def generate_script(req: GenerateScriptRequest):
             prompt_template=llm_service.keyword_prompt_template,
         )
 
+        # 追加：把脚本切分成 segments + 推断 suggested_scenes
+        # 失败不致命（内部函数已自带 fallback：返回 1 段 general）
+        llm_overrides = {
+            "api_key": req.llm_api_key,
+            "base_url": req.llm_base_url,
+            "model_name": req.llm_model_name,
+        }
+        segments, suggested_scenes = _segment_script_internal(
+            content.strip(),
+            template_id=template_id,
+            available_scenes=req.available_scenes,
+            llm_overrides=llm_overrides,
+            provider_name=provider_name,
+        )
+
         return GenerateScriptResponse(
             content=content.strip(),
             keywords=keywords.strip(),
             template_id=template_id,
+            segments=segments,
+            suggested_scenes=suggested_scenes,
         )
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/segment-script", response_model=SegmentScriptResponse)
+def segment_script(req: SegmentScriptRequest):
+    """
+    把已经生成（或被用户编辑过）的脚本重新切分成 segments。
+
+    前端在「重新分镜」按钮 / textarea 编辑后再跑 stage 2-6 之前调用。
+    用法和 /generate-script 内部追加的分镜步骤一致，只是对外暴露 + 不重新出脚本。
+    """
+    try:
+        script = (req.script or "").strip()
+        if not script:
+            raise HTTPException(status_code=400, detail="script 不能为空")
+
+        provider_name = req.llm_provider or my_config.get('llm', {}).get('provider')
+        llm_overrides = {
+            "api_key": req.llm_api_key,
+            "base_url": req.llm_base_url,
+            "model_name": req.llm_model_name,
+        }
+        segments, suggested_scenes = _segment_script_internal(
+            script,
+            template_id=req.template_id or "general",
+            available_scenes=req.available_scenes,
+            llm_overrides=llm_overrides,
+            provider_name=provider_name,
+        )
+        return SegmentScriptResponse(
+            segments=segments,
+            suggested_scenes=suggested_scenes,
+        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1048,17 +1131,28 @@ _WIZARD_SYSTEM_PROMPT = """你是「影刀短视频工作台」的智能向导�
 # 终止协议（非常重要）
 当你认为信息够了、或者已经走完第 6 轮，必须按下面的格式结束。最后一条回复严格遵守：
 
-先用一两句话总结你收集到的信息 + 告诉用户「已经准备好，可以开始生成了」。
+先用一两句话总结你收集到的信息 + 告诉用户「已经准备好，可以开始生成了」+ 顺便告诉他应该建哪些场景目录（建议 4-6 个 kebab-case 英文名）。
 然后另起一行，输出严格的标记包裹的 JSON：
 
 ###FIELDS###
-{"topic": "...", "intro": "...", "length": "500", "language": "zh-CN", "style_hint": "...", "template_id": "general"}
+{"topic": "...", "intro": "...", "length": "500", "language": "zh-CN", "style_hint": "...", "template_id": "general", "suggested_scene_dirs": ["store-front", "skincare-process", "customer-smile"]}
 ###END###
 
-JSON 必须是合法的 UTF-8 JSON，所有字段都要有（intro / style_hint 可以是空字符串），length 必须是字符串，template_id 必须是上面 6 个英文 id 之一。
+JSON 必须是合法的 UTF-8 JSON，所有字段都要有（intro / style_hint 可以是空字符串，suggested_scene_dirs 至少给 3 个），length 必须是字符串，template_id 必须是上面 6 个英文 id 之一。
+
+# suggested_scene_dirs 怎么选
+按 template_id 给典型场景名（英文 kebab-case）：
+- promo（产品种草）→ store-front, product-closeup, before-after, customer-reaction
+- testimonial（客户证言）→ customer-portrait, customer-using, results, store-front
+- promotion（限时促销）→ store-front, promo-board, busy-store, price-tag
+- tutorial（知识科普）→ host-talking, demo-process, infographic, store-front
+- event（活动预告）→ event-poster, venue, host-talking, crowd
+- general → store-front, daily-operation, customer-interaction
+
+不要硬塞，根据用户的具体业务调整。
 
 # 不要做的事
-- 不要写超过 80 字的回复（用户在手机上看，太长会烦）
+- 不要写超过 100 字的回复（用户在手机上看，太长会烦）
 - 不要在 ###FIELDS### 之前或之后追加 markdown 标题、列表符号
 - 不要把示例占位符直接放进 JSON
 """
@@ -1130,6 +1224,132 @@ _FIELDS_RE = re.compile(
     r"###FIELDS###\s*(\{.*?\})\s*###END###",
     re.DOTALL,
 )
+
+_SEGMENTS_RE = re.compile(
+    r"###SEGMENTS###\s*(\{.*?\})\s*###END###",
+    re.DOTALL,
+)
+
+
+def _kebab_normalize(name: str) -> str:
+    """
+    把任意目录名规整成可以用来比较的 key：
+    - 小写
+    - 非字母数字下划线连字符 → 连字符
+    - 多个连字符合并
+    - 首尾连字符去掉
+    用于 scene_hint 匹配时的容错对比（"Store-Front" / "store_front" / "store-front" 视为同一个）。
+    中文字符保留（这样中文目录也能匹配，但匹配精度受 LLM 输出一致性影响）。
+    """
+    if not name:
+        return ""
+    s = name.strip().lower()
+    s = re.sub(r"[\s/\\.]+", "-", s)
+    s = re.sub(r"[^\w一-鿿-]+", "-", s)
+    s = re.sub(r"-+", "-", s)
+    return s.strip("-")
+
+
+_SEGMENT_SYSTEM_PROMPT = """你是「影刀短视频工作台」的分镜助手。任务：把一段中文短视频解说稿按口播节奏切成 6-12 段，每段绑一个 scene_hint（场景目录名），交给混剪器知道这一句应该配什么画面。
+
+# scene_hint 规则（非常重要）
+- 用户当前已经建好的目录会通过 `已有场景目录` 列表给你
+- 你的 scene_hint **优先**从这个列表里挑（精确写法不变，照抄）
+- 列表里**没有**合适的，才起一个新的 kebab-case 英文名（如 store-front / customer-smile / product-closeup / before-after），写进返回的 suggested_scenes 列表里，提醒用户「你应该补建这些目录」
+- 不要在 scene_hint 里写中文，除非「已有场景目录」里就是中文（那就照抄）
+
+# 切分原则
+1. 一段 = 1-3 个完整的句子，对应 3-8 秒的画面（口播节奏）
+2. 每段的 text 要是原脚本里**连续的、未改动的文字**，不要重写也不要省略，把整篇脚本拼起来要等于原文
+3. 主题切换 / 节奏变化 / 强调点的地方要切段
+4. 短视频通常 6-10 段比较合适，最少 4 段，最多 12 段
+
+# 输出协议（严格）
+先用一两句话说明你的切分思路，再另起一行输出：
+
+###SEGMENTS###
+{"segments": [{"text": "句子1", "scene_hint": "store-front"}, ...], "suggested_scenes": ["before-after"]}
+###END###
+
+JSON 必须合法 UTF-8。segments 数组里每个 element 必须有 text 和 scene_hint 两个字符串字段。suggested_scenes 可以是空数组 []。
+"""
+
+
+def _segment_script_internal(
+    content: str,
+    template_id: str = "general",
+    available_scenes=None,
+    llm_overrides=None,
+    provider_name=None,
+):
+    """
+    Run a single LLM call to split `content` into N segments, each with a scene_hint.
+
+    Returns: (segments_list, suggested_scenes_list)
+      - segments_list: List[ScriptSegment]
+      - suggested_scenes_list: List[str] (LLM 推荐用户补建的目录，可能为空)
+
+    解析失败时降级：整段脚本作为 1 个 segment，scene_hint = "general"，不抛错
+    （分镜失败不应该让 stage 1 整体失败）。
+    """
+    available_scenes = available_scenes or []
+    provider_name = provider_name or my_config.get('llm', {}).get('provider')
+    if not provider_name:
+        # 没 provider 就 fallback，不抛
+        return [ScriptSegment(text=content.strip(), scene_hint="general")], []
+
+    user_msg = (
+        f"脚本模板类型：{template_id}\n"
+        f"已有场景目录：{available_scenes if available_scenes else '（用户还没建任何目录，全部 scene_hint 写到 suggested_scenes 里）'}\n\n"
+        f"脚本：\n{content.strip()}"
+    )
+    messages = [
+        {"role": "system", "content": _SEGMENT_SYSTEM_PROMPT},
+        {"role": "user", "content": user_msg},
+    ]
+
+    try:
+        reply = _llm_chat(
+            provider_name,
+            messages,
+            overrides=llm_overrides or {},
+            max_tokens=1500,
+            temperature=0.3,
+        )
+    except Exception as e:
+        print(f"WARNING: _segment_script_internal LLM call failed: {e}")
+        return [ScriptSegment(text=content.strip(), scene_hint="general")], []
+
+    m = _SEGMENTS_RE.search(reply or "")
+    if not m:
+        print(f"WARNING: _segment_script_internal: no ###SEGMENTS### block in reply, falling back")
+        return [ScriptSegment(text=content.strip(), scene_hint="general")], []
+
+    try:
+        import json as _json
+        parsed = _json.loads(m.group(1))
+        raw_segments = parsed.get("segments", [])
+        raw_suggested = parsed.get("suggested_scenes", []) or []
+        segments = []
+        for seg in raw_segments:
+            text = (seg.get("text") or "").strip()
+            hint = (seg.get("scene_hint") or "general").strip() or "general"
+            if text:
+                segments.append(ScriptSegment(text=text, scene_hint=hint))
+        if not segments:
+            return [ScriptSegment(text=content.strip(), scene_hint="general")], []
+        # 去重保持顺序
+        seen = set()
+        suggested = []
+        for s in raw_suggested:
+            s = (s or "").strip()
+            if s and s not in seen:
+                seen.add(s)
+                suggested.append(s)
+        return segments, suggested
+    except Exception as e:
+        print(f"WARNING: _segment_script_internal: parse failed: {e}")
+        return [ScriptSegment(text=content.strip(), scene_hint="general")], []
 
 
 def _parse_wizard_fields(reply_text):
@@ -1464,42 +1684,107 @@ def mix_video(req: MixVideoRequest):
         if intro_clip:
             target_duration = max(0, audio_duration - 3)
 
-        total_collected_duration = 0.0
-        for i, scene in enumerate(req.scenes):
+        # 校验目录存在
+        for scene in req.scenes:
             if not os.path.isdir(scene.media_dir):
                 raise HTTPException(status_code=400, detail=f"Scene media_dir not found: {scene.media_dir}")
 
-            media_files = [
+        # 预扫描每个目录里的媒体文件，建立 scene_key → file_list 索引
+        # scene_key 用规范化的目录最后一段（kebab-case 容错）
+        scene_index = {}        # normalized_name → List[file_path]
+        scene_label = {}        # normalized_name → 原始目录名（展示用）
+        all_pool = []           # 所有目录的合并池（fallback 用）
+        for scene in req.scenes:
+            base = os.path.basename(scene.media_dir.rstrip("/\\"))
+            key = _kebab_normalize(base)
+            files = [
                 os.path.join(scene.media_dir, f) for f in os.listdir(scene.media_dir)
                 if f.lower().endswith(('.jpg', '.jpeg', '.png', '.mp4', '.mov'))
             ]
-            random.shuffle(media_files)
+            random.shuffle(files)
+            scene_index.setdefault(key, []).extend(files)
+            scene_label.setdefault(key, base)
+            all_pool.extend(files)
+        random.shuffle(all_pool)
 
-            video_files = [f for f in media_files if f.lower().endswith(('.mp4', '.mov'))]
-            if video_files:
-                first_video = random.choice(video_files)
-                media_files.remove(first_video)
-                media_files.insert(0, first_video)
+        def _pick_clip_from(file_list):
+            """从给定文件池取下一个未使用的视频/图片，返回 (path, normalized_duration) 或 (None, 0)"""
+            for mf in list(file_list):
+                if mf in all_matching_videos:
+                    continue
+                if mf.lower().endswith(('.jpg', '.jpeg', '.png')):
+                    return mf, max(5, vc.segment_min_length)
+                dur = get_video_duration(mf) or 5
+                return mf, max(vc.segment_min_length, min(dur, vc.segment_max_length))
+            return None, 0
 
-            for mf in media_files:
+        total_collected_duration = 0.0
+
+        if req.segments:
+            # —— 方案 A：按 segment 顺序选片，scene_hint 命中目录则从该目录取，否则走通用池 ——
+            for seg in req.segments:
                 if total_collected_duration >= target_duration:
                     break
-
-                if mf.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    dur = max(5, vc.segment_min_length)
-                else:
-                    dur = get_video_duration(mf) or 5
-                    dur = max(vc.segment_min_length, min(dur, vc.segment_max_length))
-
+                hint_key = _kebab_normalize(seg.scene_hint)
+                pool = scene_index.get(hint_key) or []
+                pick, dur = _pick_clip_from(pool)
+                if pick is None:
+                    # fallback：通用池
+                    pick, dur = _pick_clip_from(all_pool)
+                if pick is None:
+                    # 真的一个都没有了（所有目录都被抽空），跳过这段
+                    print(f"WARNING: mix-video: no clip available for segment '{seg.text[:20]}...'")
+                    continue
                 if vc.enable_video_transition_effect and len(all_matching_videos) > 0:
                     total_collected_duration += dur - vc.video_transition_effect_duration
                 else:
                     total_collected_duration += dur
+                all_matching_videos.append(pick)
 
-                all_matching_videos.append(mf)
+            # 段数走完但时长不够 → 从通用池接着补，保证视频不短于音频
+            while total_collected_duration < target_duration:
+                pick, dur = _pick_clip_from(all_pool)
+                if pick is None:
+                    break
+                if vc.enable_video_transition_effect and len(all_matching_videos) > 0:
+                    total_collected_duration += dur - vc.video_transition_effect_duration
+                else:
+                    total_collected_duration += dur
+                all_matching_videos.append(pick)
+        else:
+            # —— 老逻辑：按目录顺序遍历，凑够时长就停 ——
+            for i, scene in enumerate(req.scenes):
+                media_files = [
+                    os.path.join(scene.media_dir, f) for f in os.listdir(scene.media_dir)
+                    if f.lower().endswith(('.jpg', '.jpeg', '.png', '.mp4', '.mov'))
+                ]
+                random.shuffle(media_files)
 
-            if total_collected_duration >= target_duration:
-                break
+                video_files = [f for f in media_files if f.lower().endswith(('.mp4', '.mov'))]
+                if video_files:
+                    first_video = random.choice(video_files)
+                    media_files.remove(first_video)
+                    media_files.insert(0, first_video)
+
+                for mf in media_files:
+                    if total_collected_duration >= target_duration:
+                        break
+
+                    if mf.lower().endswith(('.jpg', '.jpeg', '.png')):
+                        dur = max(5, vc.segment_min_length)
+                    else:
+                        dur = get_video_duration(mf) or 5
+                        dur = max(vc.segment_min_length, min(dur, vc.segment_max_length))
+
+                    if vc.enable_video_transition_effect and len(all_matching_videos) > 0:
+                        total_collected_duration += dur - vc.video_transition_effect_duration
+                    else:
+                        total_collected_duration += dur
+
+                    all_matching_videos.append(mf)
+
+                if total_collected_duration >= target_duration:
+                    break
 
         if not all_matching_videos:
             raise HTTPException(status_code=400, detail="No media files found in scene directories")

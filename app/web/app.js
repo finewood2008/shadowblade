@@ -15,6 +15,10 @@ const state = {
   script: "",
   script_keywords: [],
   script_subtitle_count: null,
+  script_template_id: "",
+  script_segments: [],        // [{text, scene_hint}]
+  suggested_scenes: [],       // LLM 推荐用户应该建的目录名
+  segments_stale: false,      // 用户改过脚本但还没重新分镜
   audio_file: "",
   audio_duration: null,
   subtitle_file: "",
@@ -132,6 +136,10 @@ function resetPipeline() {
   state.script = "";
   state.script_keywords = [];
   state.script_subtitle_count = null;
+  state.script_template_id = "";
+  state.script_segments = [];
+  state.suggested_scenes = [];
+  state.segments_stale = false;
   state.audio_file = "";
   state.audio_duration = null;
   state.subtitle_file = "";
@@ -145,6 +153,7 @@ function resetPipeline() {
   state.stageMs = {};
   $("totalTimer").textContent = "00:00";
   renderArtifacts();
+  renderSuggestedScenes();
   $("btnReset").style.display = "none";
 }
 
@@ -177,6 +186,34 @@ function renderArtifacts() {
     const tplBadge = state.script_template_id
       ? `<span>模板 · ${escapeHtml(state.script_template_id)}</span>`
       : "";
+
+    // 分镜预览
+    let segmentsHtml = "";
+    if (Array.isArray(state.script_segments) && state.script_segments.length > 0) {
+      const items = state.script_segments.map((seg, i) => {
+        const text = escapeHtml(seg.text || "");
+        const hint = escapeHtml(seg.scene_hint || "general");
+        return `
+          <div class="segment-card">
+            <span class="segment-idx mono">${String(i + 1).padStart(2, "0")}</span>
+            <div class="segment-text">${text}</div>
+            <span class="segment-hint-chip">${hint}</span>
+          </div>`;
+      }).join("");
+      segmentsHtml = `
+        <div class="segment-list">
+          <div class="segment-list-head">
+            <span class="zh">分镜预览 · ${state.script_segments.length} 段</span>
+            <span class="en">Segments · Scene Hints</span>
+          </div>
+          ${items}
+        </div>`;
+    }
+
+    const staleBanner = state.segments_stale
+      ? `<div class="segments-stale-banner">⚠️ 脚本已修改，分镜可能不再匹配。建议点「重新分镜」更新后再重跑。</div>`
+      : "";
+
     cards.push(`
       <div class="artifact-card">
         <div class="head-row">
@@ -190,8 +227,11 @@ function renderArtifacts() {
         </div>
         ${kws ? `<div class="script-meta">${kws}</div>` : ""}
         <textarea id="script-editor" class="script-editor" rows="10" spellcheck="false">${escapeHtml(state.script)}</textarea>
+        ${staleBanner}
+        ${segmentsHtml}
         <div class="script-edit-row">
-          <span class="script-edit-hint">改完点这里，会用新文案重跑配音 → 字幕 → 混剪 → 封面。</span>
+          <span class="script-edit-hint">改完脚本可以「重新分镜」让画面对齐新文案，或直接「重新跑」。</span>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnReSegment">重新分镜</button>
           <button type="button" class="btn btn-ghost btn-sm" id="btnRerunFromScript">用这个脚本重新跑 →</button>
         </div>
       </div>
@@ -263,12 +303,75 @@ function renderArtifacts() {
     editor.addEventListener("input", () => {
       const cnt = document.getElementById("script-char-count");
       if (cnt) cnt.textContent = `${editor.value.length} 字`;
+
+      // 用户改过文字 → segments 立刻视为 stale，展示警告条
+      if (!state.segments_stale && state.script_segments.length > 0) {
+        state.segments_stale = true;
+        // 轻量级地补出 banner，避免整张卡片重绘（让用户继续编辑）
+        const card = editor.closest(".artifact-card");
+        if (card && !card.querySelector(".segments-stale-banner")) {
+          const banner = document.createElement("div");
+          banner.className = "segments-stale-banner";
+          banner.textContent = "⚠️ 脚本已修改，分镜可能不再匹配。建议点「重新分镜」更新后再重跑。";
+          editor.insertAdjacentElement("afterend", banner);
+        }
+      }
     });
   }
   const rerunBtn = document.getElementById("btnRerunFromScript");
   if (rerunBtn) {
     rerunBtn.addEventListener("click", onRerunFromScript);
   }
+  const reSegBtn = document.getElementById("btnReSegment");
+  if (reSegBtn) {
+    reSegBtn.addEventListener("click", async () => {
+      reSegBtn.disabled = true;
+      const original = reSegBtn.textContent;
+      reSegBtn.innerHTML = '<span class="spinner"></span> 重新切分…';
+      try {
+        await reSegmentScript();
+      } catch (e) {
+        alert("重新分镜失败：" + (e.message || e));
+      } finally {
+        reSegBtn.disabled = false;
+        reSegBtn.textContent = original;
+      }
+    });
+  }
+}
+
+// —— 在「素材」卡片底部展示 LLM 推荐的目录名 chips ——
+function renderSuggestedScenes() {
+  const wrap = document.getElementById("scene-suggestions");
+  if (!wrap) return;
+  if (!Array.isArray(state.suggested_scenes) || state.suggested_scenes.length === 0) {
+    wrap.innerHTML = "";
+    wrap.style.display = "none";
+    return;
+  }
+  const chips = state.suggested_scenes.map(
+    (s) => `<span class="kw-chip suggestion-chip" data-name="${escapeHtml(s)}">${escapeHtml(s)}</span>`
+  ).join("");
+  wrap.innerHTML = `
+    <div class="scene-suggestion-head">AI 建议你还可以建这些场景目录（精确匹配会让脚本和画面更对齐）：</div>
+    <div class="scene-suggestion-chips">${chips}</div>
+  `;
+  wrap.style.display = "block";
+
+  // 点击 chip：复制目录名到剪贴板，方便用户去建目录
+  wrap.querySelectorAll(".suggestion-chip").forEach((el) => {
+    el.addEventListener("click", () => {
+      const name = el.dataset.name || "";
+      if (!name) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(name).then(() => {
+          const old = el.textContent;
+          el.textContent = "✓ 已复制";
+          setTimeout(() => { el.textContent = old; }, 1200);
+        }).catch(() => {});
+      }
+    });
+  });
 }
 
 // 把 textarea 里的最新文本同步回 state.script，避免 renderArtifacts 重渲覆盖编辑
@@ -280,13 +383,18 @@ function syncScriptFromDOM() {
 }
 
 // 用 textarea 里的脚本重跑 stage 2–6（跳过 stage 1）
+// 如果分镜已经 stale，先调 /segment-script 重新切，再跑后续阶段
 async function onRerunFromScript() {
   syncScriptFromDOM();
   if (!state.script || !state.script.trim()) {
     alert("脚本不能为空");
     return;
   }
-  if (!confirm("会用你改过的脚本重新跑：配音 → 字幕 → 智能补量 → 混剪 → 封面。\n之前的视频和封面会被覆盖。\n\n继续？")) {
+  const needReSeg = state.segments_stale && state.script_segments.length > 0;
+  const promptMsg = needReSeg
+    ? "会用你改过的脚本：\n1) 先重新分镜（让画面对齐新文案）\n2) 然后重跑配音 → 字幕 → 智能补量 → 混剪 → 封面。\n之前的视频和封面会被覆盖。\n\n继续？"
+    : "会用你改过的脚本重新跑：配音 → 字幕 → 智能补量 → 混剪 → 封面。\n之前的视频和封面会被覆盖。\n\n继续？";
+  if (!confirm(promptMsg)) {
     return;
   }
   // 把脚本之后的产物清空，避免上一次的视频/封面误用
@@ -301,6 +409,15 @@ async function onRerunFromScript() {
   state.video_duration = 0;
   state.cover_file = "";
   renderArtifacts();
+
+  // 脚本变了 → 先 re-segment（失败不阻塞流水线，segments 会保留旧的）
+  if (needReSeg) {
+    try {
+      await reSegmentScript();
+    } catch (e) {
+      console.warn("re-segment 失败，将沿用旧分镜继续跑：", e);
+    }
+  }
   await runFrom(1);
 }
 
@@ -314,6 +431,12 @@ function collectInputs() {
   const extraKw = $("f-stock-kw").value
     .split(/[,，]/)
     .map((s) => s.trim())
+    .filter(Boolean);
+
+  // 把每个目录的最后一段提取出来做 scene 名候选，给 LLM 参考
+  // 后端 _kebab_normalize 会做同样的规范化
+  const availableScenes = dirs
+    .map((d) => kebabNormalize(basename(d)))
     .filter(Boolean);
 
   return {
@@ -331,6 +454,7 @@ function collectInputs() {
     rate: $("f-rate").value || "0",
     asr: $("f-asr").value,
     scenes: dirs,
+    availableScenes: availableScenes,
     segMin: parseInt($("f-segmin").value, 10) || 3,
     segMax: parseInt($("f-segmax").value, 10) || 8,
     stockProvider: $("f-stock-prov").value,
@@ -376,6 +500,41 @@ function basename(p) {
   return parts[parts.length - 1];
 }
 
+// 前端做的规范化：跟后端 _kebab_normalize 保持一致
+// 小写化、合并分隔符、保留中文
+function kebabNormalize(name) {
+  if (!name) return "";
+  let s = String(name).trim().toLowerCase();
+  s = s.replace(/[\s/\\.]+/g, "-");
+  s = s.replace(/[^\w一-鿿-]+/g, "-");
+  s = s.replace(/-+/g, "-");
+  return s.replace(/^-+|-+$/g, "");
+}
+
+// 拿 textarea 里的脚本和 inp.scenes 重新调 /segment-script
+async function reSegmentScript() {
+  syncScriptFromDOM();
+  if (!state.script || !state.script.trim()) return;
+  const inp = collectInputs();
+  const body = {
+    script: state.script,
+    template_id: state.script_template_id || inp.template || "general",
+    available_scenes: inp.availableScenes || [],
+  };
+  if (inp.llm) body.llm_provider = inp.llm;
+  if (inp.llmApiKey) body.llm_api_key = inp.llmApiKey;
+  if (inp.llmBaseUrl) body.llm_base_url = inp.llmBaseUrl;
+  if (inp.llmModelName) body.llm_model_name = inp.llmModelName;
+  const j = await postJSON("/segment-script", body);
+  state.script_segments = Array.isArray(j.segments) ? j.segments : [];
+  if (Array.isArray(j.suggested_scenes) && j.suggested_scenes.length > 0) {
+    state.suggested_scenes = j.suggested_scenes;
+  }
+  state.segments_stale = false;
+  renderArtifacts();
+  renderSuggestedScenes();
+}
+
 // ---------- 6 个阶段 ----------
 async function stage1Script(inp) {
   setStage(1, "running");
@@ -384,6 +543,7 @@ async function stage1Script(inp) {
     language: inp.language,
     length: inp.length,
     template_id: inp.template || "general",
+    available_scenes: inp.availableScenes || [],
   };
   if (inp.llm) body.llm_provider = inp.llm;
   if (inp.llmApiKey) body.llm_api_key = inp.llmApiKey;
@@ -397,12 +557,19 @@ async function stage1Script(inp) {
     : (typeof j.keywords === "string"
         ? j.keywords.split(/[,，]/).map((s) => s.trim()).filter(Boolean)
         : []);
+  // 接收分镜 + 推荐目录
+  state.script_segments = Array.isArray(j.segments) ? j.segments : [];
+  state.suggested_scenes = Array.isArray(j.suggested_scenes) ? j.suggested_scenes : [];
+  state.segments_stale = false;
+
   const kwPreview = state.script_keywords.slice(0, 5).join(", ");
+  const segCnt = state.script_segments.length;
   setStage(1, "done", {
-    meta: `${state.script.length} 字 · ${state.script_template_id}${kwPreview ? " · kw=" + kwPreview : ""}`,
+    meta: `${state.script.length} 字 · ${state.script_template_id}${segCnt ? " · " + segCnt + " 段" : ""}${kwPreview ? " · kw=" + kwPreview : ""}`,
   });
   // 脚本一出来就在产物区展示，方便用户即刻校对
   renderArtifacts();
+  renderSuggestedScenes();
 }
 
 async function stage2Audio(inp) {
@@ -516,10 +683,20 @@ async function stage5Mix(inp) {
     throw new Error("没有任何素材目录可用 · 请检查素材路径或开启智能补量");
   }
 
+  // 把分镜传给后端：每段按 scene_hint 找对应目录抽片段
+  // segments 为空时后端走老逻辑（按目录顺序遍历），向后兼容
+  const segments = Array.isArray(state.script_segments)
+    ? state.script_segments.map((s) => ({
+        text: s.text || "",
+        scene_hint: s.scene_hint || "general",
+      }))
+    : [];
+
   const body = {
     scenes: allScenes,
     audio_file: state.audio_file,
     subtitle_file: state.subtitle_file || null,
+    segments: segments,
     video_config: {
       fps: 30,
       width: 0,
@@ -904,6 +1081,11 @@ function llmSave(provider, field, val) {
       if (sel && valid.has(fields.template_id)) {
         sel.value = fields.template_id;
       }
+    }
+    // 向导推荐的场景目录名 → 展示到素材卡片下方的 chip 区
+    if (Array.isArray(fields.suggested_scene_dirs) && fields.suggested_scene_dirs.length > 0) {
+      state.suggested_scenes = fields.suggested_scene_dirs;
+      renderSuggestedScenes();
     }
     // style_hint 暂时不映射到独立字段（V0 简化）
     // 不覆盖用户已填的素材目录 / 引擎选型，那是用户自己的事

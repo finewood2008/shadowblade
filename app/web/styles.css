@@ -936,6 +936,122 @@ a { color: var(--text); text-decoration: none; }
   min-width: 200px;
 }
 
+/* —— 分镜预览（segments）—— */
+.artifact-card .segment-list {
+  margin: 12px 0 14px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.artifact-card .segment-list-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed var(--border);
+}
+.artifact-card .segment-list-head .zh {
+  font-size: 12px;
+  color: var(--text-2);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.artifact-card .segment-list-head .en {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.artifact-card .segment-card {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.artifact-card .segment-card:last-child {
+  border-bottom: none;
+}
+
+.artifact-card .segment-card .segment-idx {
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.artifact-card .segment-card .segment-text {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.artifact-card .segment-card .segment-hint-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(232, 106, 44, 0.10);
+  border: 1px solid rgba(232, 106, 44, 0.35);
+  border-radius: 4px;
+  color: var(--accent-hi);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* 脚本已编辑但分镜还没更新时的警告条 */
+.artifact-card .segments-stale-banner {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: rgba(255, 169, 64, 0.10);
+  border: 1px solid rgba(255, 169, 64, 0.4);
+  border-radius: 6px;
+  color: #ffc680;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* —— 素材卡片底部：AI 推荐的场景目录 chips —— */
+.scene-suggestions {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(232, 106, 44, 0.04);
+  border: 1px dashed rgba(232, 106, 44, 0.3);
+  border-radius: 6px;
+}
+
+.scene-suggestions .scene-suggestion-head {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.scene-suggestions .scene-suggestion-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.scene-suggestions .suggestion-chip {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s, transform 0.06s;
+}
+.scene-suggestions .suggestion-chip:hover {
+  background: rgba(232, 106, 44, 0.18);
+}
+.scene-suggestions .suggestion-chip:active {
+  transform: scale(0.97);
+}
+
 /* —— elapsed timer —— */
 
 .timer {
