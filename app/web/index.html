@@ -42,6 +42,48 @@
   <!-- ============== 主区：参数 + 流水线 ============== -->
   <section class="section">
 
+    <!-- ============== AI 智能向导（可折叠） ============== -->
+    <div class="card wizard-card" id="wizardCard">
+      <div class="wizard-head">
+        <div class="wizard-title">
+          <span class="wizard-badge">AI</span>
+          <span class="zh">不知道填什么？让 AI 问你几个问题</span>
+          <span class="en">AI Wizard · Smart Intake</span>
+        </div>
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-ghost btn-sm" id="btnWizardToggle">展开 ▾</button>
+        </div>
+      </div>
+
+      <div class="wizard-body" id="wizardBody" style="display:none;">
+        <div class="wizard-hint">
+          AI 会问你 4–6 个问题，结束后自动把答案填进下面的表单，然后你确认一下就可以点「开始生产」。
+          <span class="wizard-progress mono" id="wizardProgress">0 / 6</span>
+        </div>
+
+        <div class="chat-stream" id="chatStream">
+          <!-- 消息气泡在 app.js 里动态注入 -->
+        </div>
+
+        <div class="chat-input-row" id="chatInputRow">
+          <input
+            id="chatInput"
+            type="text"
+            placeholder="按 Enter 发送 · 例：我开了一家美容院，想做夏季美白活动的视频"
+            autocomplete="off"
+            disabled
+          />
+          <button type="button" class="btn btn-primary btn-sm" id="btnChatSend" disabled>发送</button>
+        </div>
+
+        <div class="chat-controls">
+          <button type="button" class="btn btn-primary btn-sm" id="btnWizardStart">开始向导 →</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnWizardReset" style="display:none;">重置对话</button>
+          <span class="wizard-applied mono" id="wizardApplied" style="display:none;">✓ 已为你填好表单，下拉到「开始生产」</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 主 CTA -->
     <div class="cta-bar">
       <div class="cta-msg">
@@ -171,7 +213,16 @@
           <div class="field">
             <label><span class="zh">场景目录（每行一个绝对路径，可留空）</span>SCENE DIRS</label>
             <textarea id="f-scenes" placeholder="D:\GITHUB\shadowblade\assets\beauty\scene-1&#10;D:\GITHUB\shadowblade\assets\beauty\scene-2"></textarea>
-            <span class="hint">每个目录下放 .mp4 / .mov / .jpg / .png。留空则完全依赖网络素材补量</span>
+            <div class="scene-tools">
+              <button type="button" class="btn btn-ghost btn-sm" id="btnSceneAdd" title="粘贴一个绝对路径加进来">+ 添加目录</button>
+              <select id="f-scene-recent" class="scene-recent" title="从最近用过的目录里挑">
+                <option value="">最近用过…</option>
+              </select>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnSceneClear" title="清空 textarea">清空</button>
+            </div>
+            <span class="hint">每个目录下放 .mp4 / .mov / .jpg / .png。留空则完全依赖网络素材补量。<br/>
+              <span style="color:var(--text-3);">提示：从资源管理器复制目录路径后，点「+ 添加目录」粘贴进来。最近用过的会自动保存在本地浏览器。</span>
+            </span>
           </div>
           <div class="row">
             <div class="field">

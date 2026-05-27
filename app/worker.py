@@ -165,6 +165,33 @@ class GenerateScriptResponse(BaseModel):
     content: str
     keywords: str
 
+# --- /wizard/chat ---
+
+class WizardMessage(BaseModel):
+    role: str  # "user" | "assistant"
+    content: str
+
+class WizardChatRequest(BaseModel):
+    messages: List[WizardMessage]
+    language: str = "zh-CN"
+    llm_provider: Optional[str] = None
+    llm_api_key: Optional[str] = None
+    llm_base_url: Optional[str] = None
+    llm_model_name: Optional[str] = None
+
+class WizardFields(BaseModel):
+    topic: str = ""
+    intro: str = ""
+    length: str = "500"
+    language: str = "zh-CN"
+    style_hint: str = ""
+
+class WizardChatResponse(BaseModel):
+    done: bool
+    reply: str
+    fields: Optional[WizardFields] = None
+    rounds: int = 0  # 已经走了几轮用户问答（方便前端做进度提示）
+
 # --- /generate-audio ---
 
 class LocalTTSParams(BaseModel):
@@ -886,6 +913,213 @@ def generate_script(req: GenerateScriptRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ========================== /wizard/chat ==========================
+
+# 系统 prompt：给 LLM 解释它的角色 + 字段约束 + 终止协议
+_WIZARD_SYSTEM_PROMPT = """你是「影刀短视频工作台」的智能向导，帮一个本地服务行业（餐饮 / 美容 / 零售 / 教育 / 家政 / 健身 等）的店主，通过最多 6 轮简短对话，收集生成一条短视频所需的核心信息。
+
+# 你需要收集的字段
+- topic：视频主题，一句话（包含业务 + 这条视频的核心内容），例如"夏季美白护理疗程种草"
+- intro：必须出现在视频里的具体信息（门店地址、电话、活动截止日期、限时优惠 等），如果用户没提就留空字符串
+- length：脚本字数，按用户期望的视频时长换算：30 秒 ≈ 200，45 秒 ≈ 300，60 秒 ≈ 400，90 秒 ≈ 600。返回字符串，不带单位
+- language：固定 "zh-CN"
+- style_hint：风格暗示，从这些里挑一个或自由组合："快节奏种草"、"故事化叙事"、"教学科普"、"客户证言"、"价格促销"、"活动预告"
+
+# 对话规则
+1. 每轮只问 1 个问题，简短自然，不要给一堆并列选项让用户挑。
+2. 如果用户的回答已经能推断出某个字段，就不要重复问。
+3. 优先问最有信息密度的：业务和主题 → 想给谁看 → 想突出什么 → 是否有素材 → 时长 → 必须出现的信息。
+4. 用户回答非常短时，主动用一句话把推断的细节补出来让用户确认。
+5. 最多 6 轮（用户消息数 ≤ 6）。即使信息不全也要在第 6 轮强制结束 —— 缺失的字段用合理的默认值填上。
+
+# 终止协议（非常重要）
+当你认为信息够了、或者已经走完第 6 轮，必须按下面的格式结束。最后一条回复严格遵守：
+
+先用一两句话总结你收集到的信息 + 告诉用户"已经准备好，可以开始生成了"。
+然后另起一行，输出严格的标记包裹的 JSON：
+
+###FIELDS###
+{"topic": "...", "intro": "...", "length": "500", "language": "zh-CN", "style_hint": "..."}
+###END###
+
+JSON 必须是合法的 UTF-8 JSON，所有字段都要有（intro / style_hint 可以是空字符串），length 必须是字符串。
+
+# 不要做的事
+- 不要写超过 80 字的回复（用户在手机上看，太长会烦）
+- 不要在 ###FIELDS### 之前或之后追加 markdown 标题、列表符号
+- 不要把示例文本"..."直接放进 JSON
+"""
+
+
+def _llm_chat(provider_name, messages, overrides=None, max_tokens=600, temperature=0.4):
+    """
+    Run a single OpenAI-compatible chat completion using the provider config
+    from my_config['llm'][provider_name], with optional runtime overrides.
+
+    Supports: DeepSeek, Moonshot, OpenAI, Tongyi, Ollama (all OpenAI-compatible).
+    Azure / Qianfan / Baichuan use proprietary SDKs and aren't supported here yet.
+
+    `messages` is a list of {"role": ..., "content": ...} dicts, system prompt already
+    included by the caller.
+    """
+    from openai import OpenAI  # lazy import; same SDK used by deepseek_service.py
+
+    incompatible = {"Azure", "Qianfan", "Baichuan"}
+    if provider_name in incompatible:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"向导功能暂未支持 {provider_name}（接口非 OpenAI 兼容）。"
+                "请切换到 DeepSeek / Moonshot / OpenAI / Tongyi / Ollama 之一。"
+            ),
+        )
+
+    llm_cfg = my_config.setdefault('llm', {})
+    prov_cfg = llm_cfg.setdefault(provider_name, {})
+    backup = {k: prov_cfg.get(k) for k in ("api_key", "base_url", "model_name")}
+    try:
+        if overrides:
+            if overrides.get("api_key"):    prov_cfg["api_key"] = overrides["api_key"]
+            if overrides.get("base_url"):   prov_cfg["base_url"] = overrides["base_url"]
+            if overrides.get("model_name"): prov_cfg["model_name"] = overrides["model_name"]
+        api_key = prov_cfg.get("api_key")
+        base_url = prov_cfg.get("base_url")
+        model_name = prov_cfg.get("model_name")
+        if not api_key:
+            raise HTTPException(
+                status_code=400,
+                detail=f"未找到 {provider_name} 的 api_key（既不在 config.yml 也没从前端传入）",
+            )
+        if not model_name:
+            raise HTTPException(
+                status_code=400,
+                detail=f"未找到 {provider_name} 的 model_name",
+            )
+
+        client = OpenAI(api_key=api_key, base_url=base_url) if base_url else OpenAI(api_key=api_key)
+        resp = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            stream=False,
+        )
+        return resp.choices[0].message.content or ""
+    finally:
+        for k, v in backup.items():
+            if v is None:
+                prov_cfg.pop(k, None)
+            else:
+                prov_cfg[k] = v
+
+
+_FIELDS_RE = re.compile(
+    r"###FIELDS###\s*(\{.*?\})\s*###END###",
+    re.DOTALL,
+)
+
+
+def _parse_wizard_fields(reply_text):
+    """
+    Try to extract the ###FIELDS### { ... } ###END### block from the LLM reply.
+    Returns (clean_reply_without_markers, fields_dict_or_None).
+    """
+    m = _FIELDS_RE.search(reply_text)
+    if not m:
+        return reply_text, None
+    raw_json = m.group(1)
+    try:
+        import json as _json
+        fields = _json.loads(raw_json)
+    except Exception:
+        return reply_text, None
+    # 把标记块从展示给用户的 reply 里剥掉，只留前面的总结句
+    clean = _FIELDS_RE.sub("", reply_text).strip()
+    return clean, fields
+
+
+@app.post("/wizard/chat", response_model=WizardChatResponse)
+def wizard_chat(req: WizardChatRequest):
+    """
+    AI 多轮对话向导：用户/助手交替发消息，最多 6 轮内收集完字段后吐 JSON。
+    前端传完整 messages 历史（不含 system），后端拼上系统 prompt 后调 LLM。
+    """
+    # 防御：超长 history 直接拒绝，避免 token 爆炸
+    if len(req.messages) > 30:
+        raise HTTPException(status_code=400, detail="对话历史过长，请重置向导后重新开始")
+
+    # 统计用户回合数（用来给前端做进度，也作为强制终止的硬上限）
+    user_rounds = sum(1 for m in req.messages if m.role == "user")
+
+    provider_name = req.llm_provider or my_config.get('llm', {}).get('provider')
+    if not provider_name:
+        raise HTTPException(status_code=400, detail="未指定 LLM provider")
+
+    # 构造发给 LLM 的消息：system + history
+    sys_content = _WIZARD_SYSTEM_PROMPT
+    if user_rounds >= 6:
+        # 已经到第 6 轮了，最后一次必须强制终止
+        sys_content += (
+            "\n\n# 当前状态\n"
+            "用户已经回答了 6 轮，这是最后一次回复。不要再问问题，"
+            "立即用合理默认值补全缺失字段并输出 ###FIELDS### 标记。"
+        )
+
+    llm_messages = [{"role": "system", "content": sys_content}]
+    for m in req.messages:
+        if m.role not in ("user", "assistant"):
+            continue
+        llm_messages.append({"role": m.role, "content": m.content})
+
+    # 如果是开场（history 里只有用户的"开始"伪消息或空），让 LLM 主动问第一个问题
+    # 前端约定：用户点"开始向导"会发一个 role=user, content="__start__" 的伪消息
+
+    overrides = {
+        "api_key": req.llm_api_key,
+        "base_url": req.llm_base_url,
+        "model_name": req.llm_model_name,
+    }
+
+    try:
+        reply_raw = _llm_chat(provider_name, llm_messages, overrides=overrides)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM 调用失败：{e}")
+
+    clean_reply, fields_dict = _parse_wizard_fields(reply_raw)
+
+    if fields_dict is not None:
+        # 兜底：language 必须是 zh-CN（让前端不用做这层防御）
+        fields_dict.setdefault("language", req.language or "zh-CN")
+        fields_dict.setdefault("intro", "")
+        fields_dict.setdefault("style_hint", "")
+        fields_dict.setdefault("length", "500")
+        try:
+            fields_obj = WizardFields(**fields_dict)
+        except Exception as e:
+            # JSON 解析了但字段不对 —— 当作"还没完成"，让用户/LLM 再来一轮
+            return WizardChatResponse(
+                done=False,
+                reply=f"（向导回复格式有误，请再回答一次：{e}）\n\n{clean_reply or reply_raw}",
+                fields=None,
+                rounds=user_rounds,
+            )
+        return WizardChatResponse(
+            done=True,
+            reply=clean_reply or "已为你收集好所有信息，准备开始生成。",
+            fields=fields_obj,
+            rounds=user_rounds,
+        )
+
+    return WizardChatResponse(
+        done=False,
+        reply=clean_reply or reply_raw,
+        fields=None,
+        rounds=user_rounds,
+    )
 
 
 @app.post("/generate-audio", response_model=GenerateAudioResponse)

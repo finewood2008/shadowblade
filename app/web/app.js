@@ -703,3 +703,286 @@ function llmSave(provider, field, val) {
     });
   }
 })();
+
+// ============================================================
+//   AI 智能向导：6 轮以内对话收集字段并自动填表
+// ============================================================
+(function initWizard() {
+  const card = $("wizardCard");
+  const body = $("wizardBody");
+  const toggleBtn = $("btnWizardToggle");
+  const stream = $("chatStream");
+  const input = $("chatInput");
+  const sendBtn = $("btnChatSend");
+  const startBtn = $("btnWizardStart");
+  const resetBtn = $("btnWizardReset");
+  const progressEl = $("wizardProgress");
+  const appliedEl = $("wizardApplied");
+  if (!card || !body || !stream) return;
+
+  // 对话状态
+  const wstate = {
+    open: false,
+    messages: [], // [{role, content}]
+    busy: false,
+    done: false,
+  };
+
+  // ---------- UI helpers ----------
+  function renderStream() {
+    stream.innerHTML = "";
+    for (const m of wstate.messages) {
+      // 隐藏伪开场消息
+      if (m.role === "user" && m.content === "__start__") continue;
+      const div = document.createElement("div");
+      div.className = `chat-msg ${m.role}`;
+      div.textContent = m.content;
+      stream.appendChild(div);
+    }
+    if (wstate.busy) {
+      const loading = document.createElement("div");
+      loading.className = "chat-msg assistant loading";
+      loading.textContent = "AI 正在思考";
+      stream.appendChild(loading);
+    }
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function updateProgress() {
+    const rounds = wstate.messages.filter(
+      (m) => m.role === "user" && m.content !== "__start__"
+    ).length;
+    progressEl.textContent = `${Math.min(rounds, 6)} / 6`;
+  }
+
+  function setBusy(b) {
+    wstate.busy = b;
+    input.disabled = b || wstate.done;
+    sendBtn.disabled = b || wstate.done;
+    startBtn.disabled = b || wstate.done || wstate.messages.length > 0;
+    renderStream();
+  }
+
+  function setDone() {
+    wstate.done = true;
+    input.disabled = true;
+    sendBtn.disabled = true;
+    appliedEl.style.display = "inline";
+  }
+
+  // ---------- 折叠 ----------
+  function openCard() {
+    wstate.open = true;
+    body.style.display = "block";
+    toggleBtn.textContent = "收起 ▴";
+  }
+  function closeCard() {
+    wstate.open = false;
+    body.style.display = "none";
+    toggleBtn.textContent = "展开 ▾";
+  }
+  toggleBtn.addEventListener("click", () => {
+    if (wstate.open) closeCard();
+    else openCard();
+  });
+
+  // ---------- 调 /wizard/chat ----------
+  async function callWizard() {
+    // 复用现有 LLM 设置（从主表单读取，前端覆盖后端 config）
+    const llm = $("f-llm").value || null;
+    const llmApiKey = $("f-llm-key").value.trim();
+    const llmBaseUrl = $("f-llm-base").value.trim();
+    const llmModelName = $("f-llm-model").value.trim();
+
+    const reqBody = {
+      messages: wstate.messages,
+      language: $("f-lang").value || "zh-CN",
+    };
+    if (llm) reqBody.llm_provider = llm;
+    if (llmApiKey) reqBody.llm_api_key = llmApiKey;
+    if (llmBaseUrl) reqBody.llm_base_url = llmBaseUrl;
+    if (llmModelName) reqBody.llm_model_name = llmModelName;
+
+    setBusy(true);
+    try {
+      const j = await postJSON("/wizard/chat", reqBody);
+      wstate.messages.push({ role: "assistant", content: j.reply || "" });
+      updateProgress();
+      if (j.done && j.fields) {
+        applyFields(j.fields);
+        setBusy(false);
+        setDone();
+      } else {
+        setBusy(false);
+      }
+    } catch (e) {
+      wstate.messages.push({
+        role: "assistant",
+        content: `（出错了：${e.message || e}）你可以「重置对话」从头再来，或者直接在下面手动填表单。`,
+      });
+      setBusy(false);
+    }
+  }
+
+  // ---------- 把 LLM 返回的字段写进主表单 ----------
+  function applyFields(fields) {
+    if (!fields) return;
+    if (fields.topic) $("f-topic").value = fields.topic;
+    if (fields.intro) $("f-intro").value = fields.intro;
+    if (fields.length) $("f-length").value = String(fields.length);
+    if (fields.language) $("f-lang").value = fields.language;
+    // style_hint 暂时不映射到独立字段（V0 简化）
+    // 不覆盖用户已填的素材目录 / 引擎选型，那是用户自己的事
+  }
+
+  // ---------- 开始 ----------
+  startBtn.addEventListener("click", () => {
+    wstate.messages = [{ role: "user", content: "__start__" }];
+    wstate.done = false;
+    appliedEl.style.display = "none";
+    resetBtn.style.display = "inline-flex";
+    startBtn.textContent = "已开始";
+    startBtn.disabled = true;
+    updateProgress();
+    callWizard();
+  });
+
+  // ---------- 重置 ----------
+  resetBtn.addEventListener("click", () => {
+    wstate.messages = [];
+    wstate.done = false;
+    wstate.busy = false;
+    appliedEl.style.display = "none";
+    startBtn.textContent = "开始向导 →";
+    startBtn.disabled = false;
+    input.disabled = true;
+    sendBtn.disabled = true;
+    input.value = "";
+    resetBtn.style.display = "none";
+    updateProgress();
+    renderStream();
+  });
+
+  // ---------- 发送 ----------
+  function send() {
+    const text = input.value.trim();
+    if (!text || wstate.busy || wstate.done) return;
+    wstate.messages.push({ role: "user", content: text });
+    input.value = "";
+    updateProgress();
+    callWizard();
+  }
+  sendBtn.addEventListener("click", send);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+
+  updateProgress();
+})();
+
+// ============================================================
+//   场景目录：添加 / 最近用过下拉 / 清空
+// ============================================================
+(function initSceneTools() {
+  const ta = $("f-scenes");
+  const addBtn = $("btnSceneAdd");
+  const clearBtn = $("btnSceneClear");
+  const recentSel = $("f-scene-recent");
+  if (!ta || !addBtn) return;
+
+  const LS_KEY = "shadowblade.recentScenes";
+  const MAX_RECENT = 8;
+
+  function loadRecent() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr.filter((s) => typeof s === "string") : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveRecent(list) {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(list.slice(0, MAX_RECENT)));
+    } catch {}
+  }
+
+  function pushRecent(path) {
+    if (!path) return;
+    const list = loadRecent();
+    const idx = list.indexOf(path);
+    if (idx >= 0) list.splice(idx, 1);
+    list.unshift(path);
+    saveRecent(list);
+    refreshDropdown();
+  }
+
+  function refreshDropdown() {
+    if (!recentSel) return;
+    const list = loadRecent();
+    recentSel.innerHTML = '<option value="">最近用过…</option>';
+    for (const p of list) {
+      const opt = document.createElement("option");
+      opt.value = p;
+      opt.textContent = p.length > 50 ? "…" + p.slice(-49) : p;
+      recentSel.appendChild(opt);
+    }
+  }
+
+  function appendPath(path) {
+    if (!path) return;
+    const trimmed = path.trim();
+    if (!trimmed) return;
+    const lines = ta.value.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    if (lines.includes(trimmed)) return; // 已经在里面就不重复加
+    lines.push(trimmed);
+    ta.value = lines.join("\n");
+    pushRecent(trimmed);
+  }
+
+  addBtn.addEventListener("click", () => {
+    const p = window.prompt(
+      "粘贴一个绝对路径（每次一个）：\n例：D:\\GITHUB\\shadowblade\\assets\\beauty\\scene-1"
+    );
+    if (p) appendPath(p);
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      if (!ta.value.trim()) return;
+      if (window.confirm("确认清空 textarea 里所有目录？最近用过的记录不会删。")) {
+        ta.value = "";
+      }
+    });
+  }
+
+  if (recentSel) {
+    recentSel.addEventListener("change", () => {
+      const v = recentSel.value;
+      if (v) {
+        appendPath(v);
+        recentSel.value = "";
+      }
+    });
+  }
+
+  // textarea 失焦时把里面的所有路径也记一遍（手动粘贴的也能进最近）
+  ta.addEventListener("blur", () => {
+    const lines = ta.value
+      .split(/\r?\n/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    // 反向 push，让 textarea 里第一行排在最近用过的最前
+    for (let i = lines.length - 1; i >= 0; i--) {
+      pushRecent(lines[i]);
+    }
+  });
+
+  refreshDropdown();
+})();
